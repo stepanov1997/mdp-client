@@ -2,15 +2,21 @@ package controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import soap.Application_PortType;
 import soap.Application_ServiceLocator;
+import util.FXMLHelper;
 
 import javax.xml.rpc.ServiceException;
+import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ResourceBundle;
@@ -49,7 +55,12 @@ public class SignInController implements Initializable {
         if ("".equals(token) || token == null) {
             new Alert(Alert.AlertType.ERROR, "Error..Try again later..").showAndWait();
         } else {
-            new Alert(Alert.AlertType.INFORMATION, "Token: "+token).showAndWait();
+            new Alert(Alert.AlertType.INFORMATION, "You successfully registered.").showAndWait();
+            Stage stage = (Stage) button.getScene().getWindow();
+
+            PasswordController passwordController = new PasswordController(token);
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/password.fxml","/view/css/sign-in.css", passwordController);
+            stage.setScene(scene);
         }
         button.setDisable(false);
     }
