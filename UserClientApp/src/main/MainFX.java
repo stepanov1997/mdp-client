@@ -29,6 +29,7 @@ public class MainFX extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
+        System.setProperty("java.security.policy", "client.policy");
         String token = CurrentUser.getToken();
         String passwordHash = CurrentUser.getPasswordHash();
         if(token==null || passwordHash==null || token.isBlank() || passwordHash.isBlank())
@@ -42,14 +43,6 @@ public class MainFX extends Application {
             return;
         }
         String name = null;
-        Application_ServiceLocator asl = new Application_ServiceLocator();
-        try {
-            Application_PortType apt = asl.getApplication();
-            name = apt.checkToken(token);
-        } catch (RemoteException | ServiceException e) {
-            new Alert(Alert.AlertType.ERROR, "Error..Try again later..").showAndWait();
-            e.printStackTrace();
-        }
         Scene scene = FXMLHelper.getInstance().loadNewScene("/view/local-login.fxml", "/view/css/sign-in.css", new LocalLoginController(name));
         primaryStage.setScene(scene);
         primaryStage.getIcons().add(new Image("/view/icons/app-icon.png"));

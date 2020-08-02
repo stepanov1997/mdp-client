@@ -42,7 +42,6 @@ public class PasswordController implements Initializable {
             CurrentUser.setToken(token);
             CurrentUser.setPassword(passwordField.getText());
             new Alert(Alert.AlertType.INFORMATION, "Successfully adding password.").showAndWait();
-
         }
     }
 }

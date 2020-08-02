@@ -1,0 +1,12 @@
+#mapa {
+    -fx-background-image: url("/view/map.png");
+    -fx-background-size: stretch;
+}
+
+.pane-active {
+    -fx-background-color: red;
+}
+
+.pane-inactive {
+    -fx-background-color: transparent;
+}

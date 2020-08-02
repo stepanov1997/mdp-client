@@ -22,7 +22,7 @@
     <PasswordField fx:id="passwordField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
     <HBox alignment="bottom_right" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
-        <Button text="Register" onAction="#login"/>
+        <Button text="Log in" onAction="#login"/>
     </HBox>
     <columnConstraints>
         <ColumnConstraints />
