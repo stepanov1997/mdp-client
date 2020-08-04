@@ -7,33 +7,26 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.chainsaw.Main;
-import server.IFileServer;
 import util.CurrentUser;
-import util.ImageCell;
+import util.RmiClient;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.rmi.Naming;
-import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class MainMenuController implements Initializable {
+
+    public static final int TCP_PORT = 8084;
+    public static final String IP_ADDRESS = "pisio.etfbl.net";
+    Socket sock = null;
+    BufferedReader in = null;
+    PrintWriter out = null;
 
     @FXML
     private GridPane mapa;
@@ -41,6 +34,12 @@ public class MainMenuController implements Initializable {
     private Label coords;
     @FXML
     private Button chooserButton;
+    @FXML
+    private TextArea chat;
+    @FXML
+    private TextArea message;
+    @FXML
+    private Button sendMessageButton;
 
     private Pane[][] fields;
     private final Object _locker = new Object();
@@ -52,6 +51,77 @@ public class MainMenuController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initMap();
         initPicker();
+        initButton();
+        new Thread(this::initChat).start();
+    }
+
+    private void initButton() {
+        sendMessageButton.setOnAction(event -> {
+            synchronized (_locker) {
+                Platform.runLater(()->sendMessageButton.setDisable(true));
+
+                var context = new Object() {
+                    String text = message.getText();
+                };
+
+                if (out != null){
+                    context.text = context.text.replaceAll("\\n","").replaceAll("\\r","");
+                    out.println(context.text);
+                    System.out.println("Data to write: \""+context.text+"\"");
+                    Platform.runLater(()->chat.setText(chat.getText() + "[me]: " + context.text+ System.lineSeparator()+ System.lineSeparator()));
+                    Platform.runLater(()->message.setText(""));
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
+                }
+                Platform.runLater(()->sendMessageButton.setDisable(false));
+            }
+        });
+    }
+
+    private void initChat() {
+        try {
+            InetAddress addr = InetAddress.getByName(IP_ADDRESS);
+            sock = new Socket(addr, TCP_PORT);
+
+            in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())), true);
+
+            var ref = new Object() {
+                final boolean flag = true;
+            };
+
+            out.println("Token: " + CurrentUser.getToken());
+
+            // prikaz poruka
+            while (ref.flag) {
+                char[] response = new char[1024];
+                try {
+                    in.read(response);
+                    String result = String.valueOf(response);
+                    if(result.isBlank())
+                        continue;
+                    System.out.println("Read data: \""+String.valueOf(response)+"\"");
+                    String finalResult = result;
+                    Platform.runLater(()->chat.setText(chat.getText() + finalResult+ System.lineSeparator()));
+                    Platform.runLater(()-> chat.setScrollTop(chat.getHeight()));
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } catch (IOException ignored) {
+                    ignored.printStackTrace();
+                }
+            }
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
     }
 
     private void initPicker() {
@@ -62,36 +132,8 @@ public class MainMenuController implements Initializable {
                 new Alert(Alert.AlertType.WARNING, "Please, choose max 5 files.").showAndWait();
                 return;
             }
-            selectedFiles.forEach(MainMenuController::sendFileToServer);
+            selectedFiles.forEach(RmiClient::sendFileToServer);
         });
-    }
-
-    private static void sendFileToServer(File file) {
-        try {
-            String token = CurrentUser.getToken();
-            String nm = "FileServer";
-            IFileServer srv = (IFileServer) Naming.lookup("rmi://pisio.etfbl.net:1099/" + nm);
-            int fileSize = (int) file.length();
-            int sended = 0;
-            try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
-                while (sended < fileSize) {
-                    int toSend = 10_000_000;
-                    if (fileSize - sended < toSend)
-                        toSend = (int) (fileSize - sended);
-                    byte[] buffer = new byte[toSend];
-                    randomAccessFile.seek(sended);
-                    randomAccessFile.read(buffer, 0, toSend);
-                    String pathOnServer = srv.uploadFileOnServer(token, file.getName(), buffer, sended);
-                    if(pathOnServer==null){
-                        throw new RemoteException();
-                    }
-                    sended += toSend;
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("FileServer exception:");
-            e.printStackTrace();
-        }
     }
 
     private void initMap() {
