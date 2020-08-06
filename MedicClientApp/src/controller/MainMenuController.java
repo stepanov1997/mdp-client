@@ -1,18 +1,28 @@
 package controller;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.cell.PropertyValueFactory;
+import model.UserModel;
+import soap.Application_PortType;
+import soap.Application_ServiceLocator;
 
+import javax.xml.rpc.ServiceException;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MainMenuController implements Initializable {
 
@@ -34,6 +44,9 @@ public class MainMenuController implements Initializable {
     private TextArea message;
     @FXML
     private Button sendMessageButton;
+    @FXML
+    private TableView<UserModel> tableView;
+
 
     //private Pane[][] fields;
     private final Object _locker = new Object();
@@ -45,6 +58,7 @@ public class MainMenuController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         //initMap();
         //initPicker();
+        initTable();
         sendMessageButton.setOnAction(event -> {
             Platform.runLater(() -> sendMessageButton.setDisable(true));
 
@@ -52,11 +66,11 @@ public class MainMenuController implements Initializable {
                 String text = message.getText();
             };
             if (out != null) {
-                context.text = context.text.replaceAll("\\n","").replaceAll("\\r","");
+                context.text = context.text.replaceAll("\\n", "").replaceAll("\\r", "");
                 out.println(context.text);
-                System.out.println("Data to write: \""+context.text+"\"");
-                Platform.runLater(() -> chat.setText(chat.getText() + "[me]: " + context.text + System.lineSeparator()+ System.lineSeparator()));
-                Platform.runLater(()->message.setText(""));
+                System.out.println("Data to write: \"" + context.text + "\"");
+                Platform.runLater(() -> chat.setText(chat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
+                Platform.runLater(() -> message.setText(""));
                 try {
                     Thread.sleep(300);
                 } catch (InterruptedException e) {
@@ -68,6 +82,23 @@ public class MainMenuController implements Initializable {
             Platform.runLater(() -> sendMessageButton.setDisable(false));
         });
         new Thread(this::initChat).start();
+    }
+
+    private void initTable() {
+        tableView.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("token"));
+        tableView.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("options"));
+        String[] tokens = {};
+        Application_ServiceLocator asl = new Application_ServiceLocator();
+        try {
+            Application_PortType apt = asl.getApplication();
+            tokens = apt.getActiveTokens();
+        } catch (RemoteException | ServiceException e) {
+            new Alert(Alert.AlertType.ERROR, "Error..Try again later..").showAndWait();
+            e.printStackTrace();
+        }
+        tableView.setItems(FXCollections.observableArrayList(Arrays.stream(tokens)
+                        .map(UserModel::new)
+                        .collect(Collectors.toList())));
     }
 
     private void initChat() {
@@ -87,12 +118,12 @@ public class MainMenuController implements Initializable {
                 try {
                     in.read(response);
                     String result = String.valueOf(response);
-                    if(result.isBlank())
+                    if (result.isBlank())
                         continue;
-                    System.out.println("Read data: \""+String.valueOf(response)+"\"");
+                    System.out.println("Read data: \"" + String.valueOf(response) + "\"");
                     String finalResult = result;
-                    Platform.runLater(() -> chat.setText(chat.getText() + finalResult+ System.lineSeparator()));
-                    Platform.runLater(()-> chat.setScrollTop(chat.getHeight()));
+                    Platform.runLater(() -> chat.setText(chat.getText() + finalResult + System.lineSeparator()));
+                    Platform.runLater(() -> chat.setScrollTop(chat.getHeight()));
                 } catch (IOException ignored) {
                     ignored.printStackTrace();
                 }

@@ -10,3 +10,12 @@
 .pane-inactive {
     -fx-background-color: transparent;
 }
+
+.table-view .table-column {
+    -fx-alignment: center;
+}
+
+.table-view .table-cell {
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+}

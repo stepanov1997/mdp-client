@@ -31,7 +31,12 @@ public class MainFX extends Application {
         primaryStage.setScene(scene);
         primaryStage.getIcons().add(new Image("/view/icons/app-icon.png"));
         primaryStage.setTitle("Hospital Application");
-        primaryStage.setResizable(false);
+        primaryStage.setResizable(true);
+        primaryStage.setOnCloseRequest(event-> {
+            System.exit(0);
+        });
+        primaryStage.setWidth(1000);
+        primaryStage.setHeight(500);
         primaryStage.show();
     }
 }

@@ -3,28 +3,31 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 
+<?import util.TableColumnPlus?>
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="403.0" prefWidth="599.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="32.66668701171875" prefWidth="94.66668891906738" />
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="47.66668701171875" prefWidth="114.66664441426596" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="11.000025431315123" prefWidth="11.000025431315123" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="107.66666666666666" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="70.66668701171875" prefWidth="99.66668701171875" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="3.3333536783854356" prefWidth="6.999979654947936" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="42.333404541015625" prefWidth="85.66664632161462" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="56.33331298828125" prefWidth="79.99995930989587" />
+        <ColumnConstraints hgrow="NEVER" maxWidth="1.7976931348623157E308" minWidth="11.000025431315123" prefWidth="11.000025431315123" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="39.666610717773466" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="48.66668701171875" prefWidth="170.33338928222656" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="3.3333536783854356" prefWidth="14.999959309895814" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="35.000020345052064" prefWidth="131.33330281575513" />
+      <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="29.000030517578125" prefWidth="29.000030517578125" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="14.0" prefWidth="18.6666259765625" />
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
@@ -39,9 +42,10 @@
         <RowConstraints maxHeight="278.3333333333333" minHeight="60.0" vgrow="SOMETIMES" />
         <RowConstraints maxHeight="278.3333333333333" minHeight="35.0" vgrow="SOMETIMES" />
         <RowConstraints maxHeight="1.7976931348623157E308" minHeight="35.0" vgrow="ALWAYS" />
-        <RowConstraints maxHeight="1.7976931348623157E308" minHeight="35.0" vgrow="ALWAYS" />
-        <RowConstraints maxHeight="1.7976931348623157E308" minHeight="56.33332316080731" vgrow="ALWAYS" />
-        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="1.7976931348623157E308" minHeight="0.0" prefHeight="22.66667683919269" vgrow="ALWAYS" />
+        <RowConstraints maxHeight="1.7976931348623157E308" minHeight="23.333353678385436" prefHeight="31.666656494140625" vgrow="ALWAYS" />
+        <RowConstraints maxHeight="49.000030517578125" minHeight="16.6666259765625" prefHeight="34.666666666666686" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="28.0" minHeight="10.0" prefHeight="28.0" vgrow="SOMETIMES" />
         <RowConstraints percentHeight="0.0" vgrow="SOMETIMES" />
     </rowConstraints>
     <children>
@@ -71,59 +75,23 @@
                 <Cursor fx:constant="TEXT" />
             </cursor>
         </TextArea>
-        <TextArea fx:id="message" prefHeight="200.0" GridPane.columnSpan="2" GridPane.rowIndex="7" GridPane.rowSpan="2">
+        <TextArea fx:id="message" maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="7" GridPane.rowSpan="2">
             <GridPane.margin>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
             </GridPane.margin>
         </TextArea>
         <Button fx:id="sendMessageButton" mnemonicParsing="false" text="Send message" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="9" />
         <Label GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
-        <Label alignment="CENTER" prefHeight="39.0" prefWidth="181.0" text="Communication with medical staff" textAlignment="CENTER" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
-        <Label alignment="CENTER" prefHeight="38.0" prefWidth="183.0" text="Sharing location" wrapText="true" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
-        <Label alignment="CENTER" prefHeight="38.0" prefWidth="183.0" text="Sharing documentations" wrapText="true" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.rowIndex="2" />
-        <Label text="Select location:" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="3" />
-        <GridPane fx:id="mapa" gridLinesVisible="true" prefHeight="75.0" prefWidth="208.0" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="4" GridPane.rowSpan="3">
-            <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
-            </rowConstraints>
-        </GridPane>
-      <HBox GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER">
-         <children>
-            <Label prefHeight="38.0" prefWidth="138.0" text="Selected coordinants:   " wrapText="true" />
-            <Label fx:id="coords" alignment="CENTER" contentDisplay="CENTER" prefHeight="38.0" prefWidth="82.0" />
-         </children>
-      </HBox>
-      <Button mnemonicParsing="false" text="Share location" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="9" />
-      <DatePicker prefHeight="25.0" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="8" />
-      <Button fx:id="chooserButton" mnemonicParsing="false" prefHeight="43.0" prefWidth="146.0" text="Select documents for sending" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.rowIndex="5" GridPane.rowSpan="2">
-         <GridPane.margin>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-         </GridPane.margin>
-      </Button>
-      <Button mnemonicParsing="false" text="Send documentation" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="9" />
+        <Label alignment="CENTER" prefHeight="39.0" prefWidth="181.0" text="Communication with patient" textAlignment="CENTER" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+      <TableView fx:id="tableView" GridPane.columnIndex="3" GridPane.columnSpan="5" GridPane.rowIndex="3" GridPane.rowSpan="4">
+        <columns>
+          <TableColumnPlus percentageWidth="0.5" text="Token" />
+          <TableColumnPlus percentageWidth="0.5" text="options" />
+        </columns>
+      </TableView>
+      <TextField GridPane.columnIndex="4" GridPane.rowIndex="7" />
+      <Button mnemonicParsing="false" text="Find by token 🔎" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="7" />
+      <Label alignment="CENTER" prefHeight="39.0" prefWidth="321.0" text="List of active patients:" wrapText="true" GridPane.columnIndex="3" GridPane.columnSpan="4" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+      <Button mnemonicParsing="false" text="Stop chat" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="10" />
     </children>
 </GridPane>
