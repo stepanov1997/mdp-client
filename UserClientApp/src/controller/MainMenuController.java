@@ -4,13 +4,13 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import util.CurrentUser;
+import util.FXMLHelper;
 import util.RmiClient;
 
 import java.io.*;
@@ -24,9 +24,9 @@ public class MainMenuController implements Initializable {
 
     public static final int TCP_PORT = 8084;
     public static final String IP_ADDRESS = "pisio.etfbl.net";
-    Socket sock = null;
-    BufferedReader in = null;
-    PrintWriter out = null;
+    public static Socket sock = null;
+    public static BufferedReader in = null;
+    public static PrintWriter out = null;
 
     @FXML
     private GridPane mapa;
@@ -40,6 +40,14 @@ public class MainMenuController implements Initializable {
     private TextArea message;
     @FXML
     private Button sendMessageButton;
+    @FXML
+    private MenuItem mapOfRecordedPositions;
+    @FXML
+    private MenuItem applicationUsage;
+    @FXML
+    private MenuItem unsubscribeFromRegister;
+    @FXML
+    private MenuItem closeApplication;
 
     private Pane[][] fields;
     private final Object _locker = new Object();
@@ -49,37 +57,56 @@ public class MainMenuController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        initMenu();
         initMap();
         initPicker();
         initButton();
         new Thread(this::initChat).start();
     }
 
+    private void initMenu() {
+        mapOfRecordedPositions.setOnAction(actionEvent -> {
+
+        });
+        applicationUsage.setOnAction(actionEvent -> {
+
+        });
+        unsubscribeFromRegister.setOnAction(actionEvent -> {
+            CurrentUser.setToken("");
+            CurrentUser.setPassword("");
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/sign-in.fxml", "/view/css/sign-in.css",new SignInController());
+            Stage stage = (Stage) sendMessageButton.getScene().getWindow();
+            stage.setScene(scene);
+        });
+        closeApplication.setOnAction(actionEvent -> {
+            System.exit(0);
+        });
+    }
+
     private void initButton() {
         sendMessageButton.setOnAction(event -> {
             synchronized (_locker) {
-                Platform.runLater(()->sendMessageButton.setDisable(true));
+                Platform.runLater(() -> sendMessageButton.setDisable(true));
 
                 var context = new Object() {
                     String text = message.getText();
                 };
 
-                if (out != null){
-                    context.text = context.text.replaceAll("\\n","").replaceAll("\\r","");
+                if (out != null) {
+                    context.text = context.text.replaceAll("\\n", "").replaceAll("\\r", "");
                     out.println(context.text);
-                    System.out.println("Data to write: \""+context.text+"\"");
-                    Platform.runLater(()->chat.setText(chat.getText() + "[me]: " + context.text+ System.lineSeparator()+ System.lineSeparator()));
-                    Platform.runLater(()->message.setText(""));
+                    System.out.println("Data to write: \"" + context.text + "\"");
+                    Platform.runLater(() -> chat.setText(chat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
+                    Platform.runLater(() -> message.setText(""));
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
-                else {
+                } else {
                     new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
                 }
-                Platform.runLater(()->sendMessageButton.setDisable(false));
+                Platform.runLater(() -> sendMessageButton.setDisable(false));
             }
         });
     }
@@ -103,13 +130,12 @@ public class MainMenuController implements Initializable {
                 char[] response = new char[1024];
                 try {
                     in.read(response);
-                    String result = String.valueOf(response);
-                    if(result.isBlank())
+                    String result = String.valueOf(response).trim();
+                    if (result.isBlank())
                         continue;
-                    System.out.println("Read data: \""+String.valueOf(response)+"\"");
-                    String finalResult = result;
-                    Platform.runLater(()->chat.setText(chat.getText() + finalResult+ System.lineSeparator()));
-                    Platform.runLater(()-> chat.setScrollTop(chat.getHeight()));
+                    System.out.println("Read data: \"" + String.valueOf(response) + "\"");
+                    Platform.runLater(() -> chat.setText(chat.getText() + result + System.lineSeparator()));
+                    Platform.runLater(() -> chat.setScrollTop(chat.getHeight()));
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {

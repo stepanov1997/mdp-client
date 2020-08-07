@@ -10,8 +10,12 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import soap.Application_PortType;
+import soap.Application_ServiceLocator;
 import util.TableColumnPlus;
 
+import javax.xml.rpc.ServiceException;
+import java.rmi.RemoteException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -20,7 +24,7 @@ public class UserModel {
     private final SimpleStringProperty token;
     private final SimpleObjectProperty<GridPane> options;
 
-    public UserModel(String token) {
+    public UserModel(String token, Runnable refreshCallback) {
         this.token = new SimpleStringProperty(token);
 
         GridPane gridPane = new GridPane();
@@ -43,7 +47,20 @@ public class UserModel {
         blockButton.setText("Block user");
         blockButton.setOnAction(event-> {
             new Thread(()-> {
-                Platform.runLater(()->new Alert(Alert.AlertType.INFORMATION, "Block user").showAndWait());
+                Application_ServiceLocator asl = new Application_ServiceLocator();
+                try {
+                    Application_PortType apt = asl.getApplication();
+                    if(apt.deactivateToken(token)){
+                        Platform.runLater(()->new Alert(Alert.AlertType.ERROR, "Successfully blocked.").showAndWait());
+                        Platform.runLater(refreshCallback);
+                    }
+                    else {
+                        Platform.runLater(()->new Alert(Alert.AlertType.ERROR, "Error, unsuccessfully blocked.").showAndWait());
+                    }
+                } catch (RemoteException | ServiceException e) {
+                    new Alert(Alert.AlertType.ERROR, "Error..Try again later..").showAndWait();
+                    e.printStackTrace();
+                }
             }).start();
         });
         gridPane.getChildren().add(blockButton);

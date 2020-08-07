@@ -32,6 +32,7 @@ public class MainFX extends Application {
         System.setProperty("java.security.policy", "client.policy");
         String token = CurrentUser.getToken();
         String passwordHash = CurrentUser.getPasswordHash();
+        primaryStage.setOnCloseRequest(event-> System.exit(0));
         if(token==null || passwordHash==null || token.isBlank() || passwordHash.isBlank())
         {
             Scene scene = FXMLHelper.getInstance().loadNewScene("/view/sign-in.fxml", "/view/css/sign-in.css", new SignInController());

@@ -16,7 +16,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<?import util.TableColumnPlus?>
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="403.0" prefWidth="599.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="32.66668701171875" prefWidth="94.66668891906738" />
@@ -85,8 +84,10 @@
         <Label alignment="CENTER" prefHeight="39.0" prefWidth="181.0" text="Communication with patient" textAlignment="CENTER" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
       <TableView fx:id="tableView" GridPane.columnIndex="3" GridPane.columnSpan="5" GridPane.rowIndex="3" GridPane.rowSpan="4">
         <columns>
-          <TableColumnPlus percentageWidth="0.5" text="Token" />
-          <TableColumnPlus percentageWidth="0.5" text="options" />
+<!--          <TableColumnPlus percentageWidth="0.5" text="Token" />-->
+<!--          <TableColumnPlus percentageWidth="0.5" text="options" />-->
+            <TableColumn prefWidth="100" text="Token" />
+            <TableColumn prefWidth="100" text="options" />
         </columns>
       </TableView>
       <TextField GridPane.columnIndex="4" GridPane.rowIndex="7" />

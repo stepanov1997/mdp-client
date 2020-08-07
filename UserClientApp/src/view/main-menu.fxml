@@ -51,11 +51,11 @@
             <menus>
                 <Menu mnemonicParsing="false" text="Options">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="Map of recorded positions" />
-                        <MenuItem mnemonicParsing="false" text="Application usage" />
+                        <MenuItem fx:id="mapOfRecordedPositions" mnemonicParsing="false" text="Map of recorded positions" />
+                        <MenuItem fx:id="applicationUsage" mnemonicParsing="false" text="Application usage" />
                         <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Unsubscribe from the register" />
-                        <MenuItem mnemonicParsing="false" text="Close application" />
+                        <MenuItem fx:id="unsubscribeFromRegister" mnemonicParsing="false" text="Unsubscribe from the register" />
+                        <MenuItem fx:id="closeApplication" mnemonicParsing="false" text="Close application" />
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Settings">

@@ -97,7 +97,7 @@ public class MainMenuController implements Initializable {
             e.printStackTrace();
         }
         tableView.setItems(FXCollections.observableArrayList(Arrays.stream(tokens)
-                        .map(UserModel::new)
+                        .map(elem -> new UserModel(elem, this::initTable))
                         .collect(Collectors.toList())));
     }
 
@@ -117,7 +117,7 @@ public class MainMenuController implements Initializable {
                 char[] response = new char[1024];
                 try {
                     in.read(response);
-                    String result = String.valueOf(response);
+                    String result = String.valueOf(response).trim();
                     if (result.isBlank())
                         continue;
                     System.out.println("Read data: \"" + String.valueOf(response) + "\"");
