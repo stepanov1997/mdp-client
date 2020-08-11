@@ -9,12 +9,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import util.ActivityUtil;
 import util.CurrentUser;
 import util.FXMLHelper;
 import util.SHA1;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 
 public class LocalLoginController implements Initializable {
@@ -43,8 +45,14 @@ public class LocalLoginController implements Initializable {
             new Alert(Alert.AlertType.ERROR, "Password is not OK.");
             return;
         }
+        ActivityUtil.loginTime = LocalDateTime.now();
         Stage stage = (Stage) welcome.getScene().getWindow();
         stage.setResizable(true);
+        stage.setOnCloseRequest(event -> {
+            ActivityUtil.logoutTime = LocalDateTime.now();
+            ActivityUtil.addActivity();
+            System.exit(0);
+        });
         MainMenuController mainMenuController = new MainMenuController();
         Scene scene = FXMLHelper.getInstance().loadNewScene("/view/main-menu.fxml","/view/css/main-menu.css", mainMenuController);
         stage.setScene(scene);

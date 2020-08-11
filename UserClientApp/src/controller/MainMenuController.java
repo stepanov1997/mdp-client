@@ -1,5 +1,7 @@
 package controller;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -9,10 +11,14 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import util.CurrentUser;
 import util.FXMLHelper;
 import util.RmiClient;
 
+import javax.ws.rs.client.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -23,7 +29,9 @@ import java.util.stream.Stream;
 public class MainMenuController implements Initializable {
 
     public static final int TCP_PORT = 8084;
-    public static final String IP_ADDRESS = "pisio.etfbl.net";
+    //public static final String IP_ADDRESS = "pisio.etfbl.net";
+    public static final String IP_ADDRESS = "127.0.0.1";
+    private static final String LOCATION_API = "http://localhost:8081/api/locations";
     public static Socket sock = null;
     public static BufferedReader in = null;
     public static PrintWriter out = null;
@@ -40,6 +48,8 @@ public class MainMenuController implements Initializable {
     private TextArea message;
     @FXML
     private Button sendMessageButton;
+    @FXML
+    private Button sendLocationButton;
     @FXML
     private MenuItem mapOfRecordedPositions;
     @FXML
@@ -60,16 +70,47 @@ public class MainMenuController implements Initializable {
         initMenu();
         initMap();
         initPicker();
-        initButton();
+        initSendLocationButton();
+        initSendMessageButton();
         new Thread(this::initChat).start();
+    }
+
+    private void initSendLocationButton() {
+        sendLocationButton.setOnAction(event -> {
+            Pair<Integer, Integer> pair = (Pair<Integer, Integer>)coords.getUserData();
+            int _lat = pair.getKey();
+            int _long = pair.getValue();
+            Client klijent = ClientBuilder.newClient();
+            WebTarget webTarget = klijent.target(LOCATION_API);
+
+            Invocation.Builder invocationBuilder =  webTarget.request(MediaType.APPLICATION_JSON);
+
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("token", CurrentUser.getToken());
+            jsonObject.addProperty("lat", _lat);
+            jsonObject.addProperty("long", _long);
+
+            Response response = invocationBuilder.post(Entity.entity(jsonObject.toString(), MediaType.APPLICATION_JSON));
+            if(response.getStatus()!=200){
+                new Alert(Alert.AlertType.ERROR, "Location is unsuccessfully sent..").showAndWait();
+                return;
+            }
+            new Alert(Alert.AlertType.INFORMATION, "Location is successfully sent..").showAndWait();
+        });
     }
 
     private void initMenu() {
         mapOfRecordedPositions.setOnAction(actionEvent -> {
-
+            Stage stage = new Stage();
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/map-recorded-position.fxml", "/view/css/main-menu.css",new MapRecordedPosition());
+            stage.setScene(scene);
+            stage.showAndWait();
         });
         applicationUsage.setOnAction(actionEvent -> {
-
+            Stage stage = new Stage();
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/application-usage.fxml", "/view/css/main-menu.css",new ApplicationUsageController());
+            stage.setScene(scene);
+            stage.showAndWait();
         });
         unsubscribeFromRegister.setOnAction(actionEvent -> {
             CurrentUser.setToken("");
@@ -83,7 +124,7 @@ public class MainMenuController implements Initializable {
         });
     }
 
-    private void initButton() {
+    private void initSendMessageButton() {
         sendMessageButton.setOnAction(event -> {
             synchronized (_locker) {
                 Platform.runLater(() -> sendMessageButton.setDisable(true));
@@ -181,6 +222,7 @@ public class MainMenuController implements Initializable {
                         Arrays.stream(fields).flatMap(Stream::of).forEach(elem -> elem.getStyleClass().remove("pane-active"));
                         field.getStyleClass().add("pane-active");
                         Platform.runLater(() -> {
+                            coords.setUserData(new Pair<Integer, Integer>(coords1, coords2));
                             coords.setText("[ " + coords1 + ", " + coords2 + " ]");
                         });
                     }

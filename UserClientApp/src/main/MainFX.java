@@ -15,7 +15,6 @@ import soap.Application_ServiceLocator;
 import util.CurrentUser;
 import util.FXMLHelper;
 
-import javax.xml.rpc.ServiceException;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
