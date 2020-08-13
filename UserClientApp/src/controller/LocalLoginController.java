@@ -4,15 +4,14 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
-import util.ActivityUtil;
-import util.CurrentUser;
-import util.FXMLHelper;
-import util.SHA1;
+import util.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -20,21 +19,16 @@ import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 
 public class LocalLoginController implements Initializable {
-    private final String name;
     @FXML
     private Text welcome;
-
     @FXML
     private TextField passwordField;
 
-
-    public LocalLoginController(String name) {
-        this.name = name;
+    public LocalLoginController() {
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        Platform.runLater(()->welcome.setText(welcome.getText()+ name));
     }
 
     @FXML
@@ -42,7 +36,7 @@ public class LocalLoginController implements Initializable {
         String passwordHash = CurrentUser.getPasswordHash();
         if(passwordHash==null || !passwordHash.equals(SHA1.encryptPassword(passwordField.getText())))
         {
-            new Alert(Alert.AlertType.ERROR, "Password is not OK.");
+            new Alert(Alert.AlertType.ERROR, "Password is not OK.").showAndWait();
             return;
         }
         ActivityUtil.loginTime = LocalDateTime.now();
@@ -54,7 +48,8 @@ public class LocalLoginController implements Initializable {
             System.exit(0);
         });
         MainMenuController mainMenuController = new MainMenuController();
-        Scene scene = FXMLHelper.getInstance().loadNewScene("/view/main-menu.fxml","/view/css/main-menu.css", mainMenuController);
+        Scene scene = FXMLHelper.getInstance().loadNewScene("/view/main-menu.fxml","/view/css/main-menu.css", mainMenuController, 900, 600);
         stage.setScene(scene);
+        StageUtil.centerStage(stage);
     }
 }

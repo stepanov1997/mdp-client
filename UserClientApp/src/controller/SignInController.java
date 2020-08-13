@@ -52,7 +52,7 @@ public class SignInController implements Initializable {
             Stage stage = (Stage) button.getScene().getWindow();
 
             PasswordController passwordController = new PasswordController(token);
-            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/password.fxml","/view/css/sign-in.css", passwordController);
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/password.fxml","/view/css/sign-in.css", passwordController,400, 300);
             stage.setScene(scene);
         }
         button.setDisable(false);

@@ -30,8 +30,8 @@ public class ActivityUtil {
             }
 
             FileWriter out = new FileWriter(PATH_TO_CSV);
-            String loginStr = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss").format(loginTime);
-            String logoutStr = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm:ss").format(logoutTime);
+            String loginStr = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").format(loginTime);
+            String logoutStr = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").format(logoutTime);
             String intervalStr = intervalGenerator(loginTime, logoutTime);
 
             try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT

@@ -14,6 +14,7 @@ import soap.Application_PortType;
 import soap.Application_ServiceLocator;
 import util.CurrentUser;
 import util.FXMLHelper;
+import util.StageUtil;
 
 import java.io.IOException;
 import java.net.URL;
@@ -34,20 +35,21 @@ public class MainFX extends Application {
         primaryStage.setOnCloseRequest(event-> System.exit(0));
         if(token==null || passwordHash==null || token.isBlank() || passwordHash.isBlank())
         {
-            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/sign-in.fxml", "/view/css/sign-in.css", new SignInController());
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/sign-in.fxml", "/view/css/sign-in.css", new SignInController(), 400, 300);
             primaryStage.setScene(scene);
             primaryStage.getIcons().add(new Image("/view/icons/app-icon.png"));
             primaryStage.setTitle("Hospital Application");
             primaryStage.setResizable(false);
+            StageUtil.centerStage(primaryStage);
             primaryStage.show();
             return;
         }
-        String name = null;
-        Scene scene = FXMLHelper.getInstance().loadNewScene("/view/local-login.fxml", "/view/css/sign-in.css", new LocalLoginController(name));
+        Scene scene = FXMLHelper.getInstance().loadNewScene("/view/local-login.fxml", "/view/css/sign-in.css", new LocalLoginController(), 300, 200);
         primaryStage.setScene(scene);
         primaryStage.getIcons().add(new Image("/view/icons/app-icon.png"));
         primaryStage.setTitle("Hospital Application");
         primaryStage.setResizable(false);
         primaryStage.show();
+        StageUtil.centerStage(primaryStage);
     }
 }

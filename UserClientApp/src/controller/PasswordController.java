@@ -3,9 +3,13 @@ package controller;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import util.CurrentUser;
+import util.FXMLHelper;
+import util.StageUtil;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -42,6 +46,11 @@ public class PasswordController implements Initializable {
             CurrentUser.setToken(token);
             CurrentUser.setPassword(passwordField.getText());
             new Alert(Alert.AlertType.INFORMATION, "Successfully adding password.").showAndWait();
+            Stage stage = (Stage) passwordField.getScene().getWindow();
+
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/local-login.fxml","/view/css/sign-in.css", new LocalLoginController(),400, 300);
+            stage.setScene(scene);
+            StageUtil.centerStage(stage);
         }
     }
 }

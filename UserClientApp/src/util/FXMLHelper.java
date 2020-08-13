@@ -16,7 +16,7 @@ public class FXMLHelper {
         return singleton==null? singleton=new FXMLHelper() : singleton;
     }
 
-    public Scene loadNewScene(String fxml, String css, Object controller)
+    public Scene loadNewScene(String fxml, String css, Object controller, double width, double height)
     {
         Parent root = null;
         FXMLLoader loader =  new FXMLLoader(getClass().getResource(fxml));
@@ -26,7 +26,7 @@ public class FXMLHelper {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, width, height);
         if(css!=null)
             scene.getStylesheets().add(css);
         return scene;

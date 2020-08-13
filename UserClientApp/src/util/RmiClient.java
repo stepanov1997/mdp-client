@@ -13,14 +13,14 @@ public class RmiClient {
         try {
             String token = CurrentUser.getToken();
             String nm = "FileServer";
-            IFileServer srv = (IFileServer) Naming.lookup("rmi://pisio.etfbl.net:1099/" + nm);
-            int fileSize = (int) file.length();
-            int sended = 0;
+            IFileServer srv = (IFileServer) Naming.lookup("rmi://127.0.0.1:1099/" + nm);
+            long fileSize = file.length();
+            long sended = 0;
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
                 while (sended < fileSize) {
                     int toSend = 10_000_000;
                     if (fileSize - sended < toSend)
-                        toSend = (int) (fileSize - sended);
+                        toSend = (int)(fileSize - sended);
                     byte[] buffer = new byte[toSend];
                     randomAccessFile.seek(sended);
                     randomAccessFile.read(buffer, 0, toSend);
