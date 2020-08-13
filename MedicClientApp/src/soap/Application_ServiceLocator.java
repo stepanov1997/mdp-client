@@ -7,6 +7,10 @@
 
 package soap;
 
+import util.ConfigUtil;
+
+import java.io.IOException;
+
 public class Application_ServiceLocator extends org.apache.axis.client.Service implements soap.Application_Service {
 
     public Application_ServiceLocator() {
@@ -22,8 +26,15 @@ public class Application_ServiceLocator extends org.apache.axis.client.Service i
     }
 
     // Use to get a proxy class for Application
-    private java.lang.String Application_address = "http://pisio.etfbl.net:8083/soap?wsdl";
+    private java.lang.String Application_address;
 
+    {
+        try {
+            Application_address = "http://"+ ConfigUtil.getServerHostname() +":"+ConfigUtil.getTokenServerPort()+"/soap?wsdl";
+        } catch (IOException e) {
+            Application_address = "http://127.0.0.1:8083/soap?wsdl";
+        }
+    }
     public java.lang.String getApplicationAddress() {
         return Application_address;
     }

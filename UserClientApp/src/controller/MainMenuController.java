@@ -35,15 +35,39 @@ import static view.datetime.DateTimePicker.DEFAULT_FORMAT;
 
 public class MainMenuController implements Initializable {
 
-    public static final int TCP_PORT = 8084;
-    //public static final String IP_ADDRESS = "pisio.etfbl.net";
-    private Queue<File> listFiles = new LinkedList<>();
+    public static String IP_ADDRESS;
+    public static int TCP_PORT;
+    private static String LOCATION_API;
 
-    public static final String IP_ADDRESS = "127.0.0.1";
-    private static final String LOCATION_API = "http://localhost:8081/api/locations";
+    static {
+
+    }
+
     public static Socket sock = null;
     public static BufferedReader in = null;
     public static PrintWriter out = null;
+
+    private Queue<File> listFiles = new LinkedList<>();
+
+    static {
+        try {
+            IP_ADDRESS = ConfigUtil.getServerHostname();
+        } catch (IOException e) {
+            IP_ADDRESS = "127.0.0.1";
+        }
+
+        try {
+            TCP_PORT = ConfigUtil.getChatServerPort();
+        } catch (IOException e) {
+            TCP_PORT = 8084;
+        }
+
+        try {
+            LOCATION_API = "http://"+ConfigUtil.getServerHostname()+":"+ConfigUtil.getCentralRegisterPort()+"/api/locations";
+        } catch (IOException e) {
+            LOCATION_API = "http://127.0.0.1:8081/api/locations";
+        }
+    }
 
     @FXML
     private GridPane mapa;
@@ -105,14 +129,14 @@ public class MainMenuController implements Initializable {
 
     private void initSendDocumentsButton() {
         sendDocumentsButton.setOnAction(event -> {
-            if (listFiles==null || listFiles.size() == 0) {
+            if (listFiles == null || listFiles.size() == 0) {
                 new Alert(Alert.AlertType.WARNING, "Please, choose some files (max 5).").showAndWait();
                 return;
             }
             try {
                 while (!listFiles.isEmpty()) {
                     File file = listFiles.poll();
-                    new Thread(()->RmiClient.sendFileToServer(file)).start();
+                    new Thread(() -> RmiClient.sendFileToServer(file)).start();
                 }
             } catch (Exception e) {
                 new Alert(Alert.AlertType.ERROR, "Unsuccessfully sending files to file server.").showAndWait();
@@ -124,18 +148,18 @@ public class MainMenuController implements Initializable {
 
     private void initSendLocationButton() {
         sendLocationButton.setOnAction(event -> {
-            Pair<Integer, Integer> pair = (Pair<Integer, Integer>)coords.getUserData();
-            LocalDateTime fromDateTimeValue = ((DateTimePicker)fromDateTime.getChildren().get(0)).getDateTimeValue();
-            LocalDateTime toDateTimeValue = ((DateTimePicker)toDateTime.getChildren().get(0)).getDateTimeValue();
-            if(pair==null || fromDateTimeValue.isAfter(LocalDateTime.now()) || toDateTimeValue.isBefore(fromDateTimeValue)){
+            Pair<Integer, Integer> pair = (Pair<Integer, Integer>) coords.getUserData();
+            LocalDateTime fromDateTimeValue = ((DateTimePicker) fromDateTime.getChildren().get(0)).getDateTimeValue();
+            LocalDateTime toDateTimeValue = ((DateTimePicker) toDateTime.getChildren().get(0)).getDateTimeValue();
+            if (pair == null || fromDateTimeValue.isAfter(LocalDateTime.now()) || toDateTimeValue.isBefore(fromDateTimeValue)) {
                 String message = "";
-                if(fromDateTimeValue.isAfter(LocalDateTime.now())){
+                if (fromDateTimeValue.isAfter(LocalDateTime.now())) {
                     message += "\nTake datetime before this moment";
                 }
-                if(toDateTimeValue.isBefore(fromDateTimeValue)){
+                if (toDateTimeValue.isBefore(fromDateTimeValue)) {
                     message += "\nTake end datetime before start datetime";
                 }
-                if(pair==null){
+                if (pair == null) {
                     message += "\nSelect location on map.";
                 }
                 new Alert(Alert.AlertType.ERROR, message).showAndWait();
@@ -146,7 +170,7 @@ public class MainMenuController implements Initializable {
             Client klijent = ClientBuilder.newClient();
             WebTarget webTarget = klijent.target(LOCATION_API);
 
-            Invocation.Builder invocationBuilder =  webTarget.request(MediaType.APPLICATION_JSON);
+            Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("token", CurrentUser.getToken());
@@ -156,7 +180,7 @@ public class MainMenuController implements Initializable {
             jsonObject.addProperty("to", DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss").format(toDateTimeValue));
 
             Response response = invocationBuilder.post(Entity.entity(jsonObject.toString(), MediaType.APPLICATION_JSON));
-            if(response.getStatus()!=200){
+            if (response.getStatus() != 200) {
                 new Alert(Alert.AlertType.ERROR, "Location is unsuccessfully sent..").showAndWait();
                 return;
             }
@@ -174,7 +198,7 @@ public class MainMenuController implements Initializable {
         });
         applicationUsage.setOnAction(actionEvent -> {
             Stage stage = new Stage();
-            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/application-usage.fxml", "/view/css/main-menu.css", new ApplicationUsageController(),900, 600);
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/application-usage.fxml", "/view/css/main-menu.css", new ApplicationUsageController(), 900, 600);
             stage.setScene(scene);
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.showAndWait();
@@ -182,16 +206,17 @@ public class MainMenuController implements Initializable {
         unsubscribeFromRegister.setOnAction(actionEvent -> {
             CurrentUser.setToken("");
             CurrentUser.setPassword("");
-            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/sign-in.fxml", "/view/css/sign-in.css", new SignInController(),400, 300);
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/sign-in.fxml", "/view/css/sign-in.css", new SignInController(), 400, 300);
             Stage stage = (Stage) sendMessageButton.getScene().getWindow();
             stage.setScene(scene);
             StageUtil.centerStage(stage);
         });
         changePasswordItem.setOnAction(actionEvent -> {
-            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/passwordChanging.fxml", "/view/css/sign-in.css", new PasswordChangingController(),400, 300);
-            Stage stage = (Stage) sendMessageButton.getScene().getWindow();
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/passwordChanging.fxml", "/view/css/sign-in.css", new PasswordChangingController(), 400, 300);
+            Stage stage = new Stage();
             stage.setScene(scene);
-            StageUtil.centerStage(stage);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
         });
         closeApplication.setOnAction(actionEvent -> {
             System.exit(0);
@@ -310,7 +335,7 @@ public class MainMenuController implements Initializable {
 //        return new String(encoded, StandardCharsets.US_ASCII);
 //    }
 
-    private DateTimePicker createDateTimePicker(){
+    private DateTimePicker createDateTimePicker() {
         DateTimePicker dateTimePicker = new DateTimePicker();
 
         dateTimePicker.minutesSelectorProperty().set(true);
@@ -321,9 +346,9 @@ public class MainMenuController implements Initializable {
         //        dt -> dt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss")));
 
         CustomBinding.bindBidirectional(dateTimePicker.dateTimeValueProperty(), dateTimePicker.dateTimeValueProperty(),
-                dt -> dt,dt -> dt);
+                dt -> dt, dt -> dt);
 
-        dateTimePicker.dateTimeValueProperty().addListener(((observable,value,newValue) -> {
+        dateTimePicker.dateTimeValueProperty().addListener(((observable, value, newValue) -> {
             dateTimePicker.getEditor().setText(newValue.format(DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss")));
         }));
 

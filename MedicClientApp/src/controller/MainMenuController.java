@@ -6,14 +6,13 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import model.UserModel;
 import soap.Application_PortType;
 import soap.Application_ServiceLocator;
+import tokenServerClient.TokenServerClient;
+import util.ConfigUtil;
 
 import javax.xml.rpc.ServiceException;
 import java.io.*;
@@ -26,18 +25,27 @@ import java.util.stream.Collectors;
 
 public class MainMenuController implements Initializable {
 
-    public static final int TCP_PORT = 8085;
-    public static final String IP_ADDRESS = "pisio.etfbl.net";
+    public static int TCP_PORT;
+    public static String IP_ADDRESS;
+
+    static {
+        try {
+            IP_ADDRESS = ConfigUtil.getServerHostname();
+        } catch (IOException e) {
+            IP_ADDRESS = "127.0.0.1";
+            e.printStackTrace();
+        }
+        try {
+            TCP_PORT = ConfigUtil.getChatServerPort();
+        } catch (IOException e) {
+            TCP_PORT = 8085;
+        }
+    }
+
     Socket sock = null;
     BufferedReader in = null;
     PrintWriter out = null;
 
-    //    @FXML
-//    private GridPane mapa;
-//    @FXML
-//    private Label coords;
-//    @FXML
-//    private Button chooserButton;
     @FXML
     private TextArea chat;
     @FXML
@@ -46,9 +54,12 @@ public class MainMenuController implements Initializable {
     private Button sendMessageButton;
     @FXML
     private TableView<UserModel> tableView;
+    @FXML
+    private Button findButton;
+    @FXML
+    private TextField findTextField;
 
 
-    //private Pane[][] fields;
     private final Object _locker = new Object();
 
     public MainMenuController() {
@@ -56,8 +67,6 @@ public class MainMenuController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        //initMap();
-        //initPicker();
         initTable();
         sendMessageButton.setOnAction(event -> {
             Platform.runLater(() -> sendMessageButton.setDisable(true));
@@ -81,24 +90,31 @@ public class MainMenuController implements Initializable {
             }
             Platform.runLater(() -> sendMessageButton.setDisable(false));
         });
+        findButton.setOnAction(event -> new Thread(() -> importDataToTable(findTextField.getText())).start());
         new Thread(this::initChat).start();
     }
 
     private void initTable() {
         tableView.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("token"));
         tableView.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("options"));
+        new Thread(() -> importDataToTable("")).start();
+    }
+
+    private void importDataToTable(String filter) {
         String[] tokens = {};
-        Application_ServiceLocator asl = new Application_ServiceLocator();
         try {
-            Application_PortType apt = asl.getApplication();
-            tokens = apt.getActiveTokens();
-        } catch (RemoteException | ServiceException e) {
+            tokens = new TokenServerClient().getActiveTokens();
+        } catch (RemoteException | ServiceException exception) {
             new Alert(Alert.AlertType.ERROR, "Error..Try again later..").showAndWait();
-            e.printStackTrace();
+            exception.printStackTrace();
         }
-        tableView.setItems(FXCollections.observableArrayList(Arrays.stream(tokens)
+        String[] finalTokens = tokens;
+        Platform.runLater(() ->
+                tableView.setItems(FXCollections.observableArrayList(Arrays.stream(finalTokens)
+                        .filter(elem -> elem.toLowerCase().contains(filter.toLowerCase()))
                         .map(elem -> new UserModel(elem, this::initTable))
-                        .collect(Collectors.toList())));
+                        .collect(Collectors.toList())))
+        );
     }
 
     private void initChat() {
@@ -132,36 +148,4 @@ public class MainMenuController implements Initializable {
             e1.printStackTrace();
         }
     }
-//
-//    private void initMap() {
-//        int columnsNum = mapa.getColumnConstraints().size();
-//        int rowsNum = mapa.getRowConstraints().size();
-//        fields = new Pane[rowsNum][columnsNum];
-//        for (int i = 0; i < rowsNum; i++) {
-//            int coords1 = i;
-//            for (int j = 0; j < columnsNum; j++) {
-//                int coords2 = j;
-//                Pane field = new Pane();
-//                fields[i][j] = field;
-//                mapa.getChildren().add(field);
-//                GridPane.setRowIndex(field, i);
-//                GridPane.setColumnIndex(field, j);
-//                field.toFront();
-//                field.setOnMouseClicked((mouseEvent) -> {
-//                    synchronized (_locker) {
-//                        Arrays.stream(fields).flatMap(Stream::of).forEach(elem -> elem.getStyleClass().remove("pane-active"));
-//                        field.getStyleClass().add("pane-active");
-//                        Platform.runLater(() -> {
-//                            coords.setText("[ " + coords1 + ", " + coords2 + " ]");
-//                        });
-//                    }
-//                });
-//            }
-//        }
-//    }
-
-//    private static String encodeFileToBase64Binary(File file) throws IOException {
-//        byte[] encoded = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
-//        return new String(encoded, StandardCharsets.US_ASCII);
-//    }
 }

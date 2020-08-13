@@ -7,8 +7,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import model.Location;
+import util.ConfigUtil;
 import util.CurrentUser;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +33,14 @@ import javax.ws.rs.core.Response;
 
 
 public class MapRecordedPosition implements Initializable {
-    private static final String LOCATION_API = "http://localhost:8081/api/locations/"+ CurrentUser.getToken();
+    private String LOCATION_API;
+    {
+        try {
+            LOCATION_API = "http://"+ ConfigUtil.getServerHostname() +":"+ConfigUtil.getCentralRegisterPort()+"/api/locations/"+ CurrentUser.getToken();
+        } catch (IOException ioException) {
+            LOCATION_API = "http://127.0.0.1:8081/api/locations/"+ CurrentUser.getToken();
+        }
+    }
     @FXML
     private GridPane mapa;
 
