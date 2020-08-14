@@ -1,5 +1,5 @@
 {
-  "server": "pisio.etfbl.net",
+  "server": "127.0.0.1",
   "chatServerPort": 8085,
   "tokenServerPort": 8083,
   "centralRegisterPort": 8081,
