@@ -17,6 +17,8 @@ import javafx.util.Pair;
 import util.*;
 import view.datetime.DateTimePicker;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -35,6 +37,10 @@ import static view.datetime.DateTimePicker.DEFAULT_FORMAT;
 
 public class MainMenuController implements Initializable {
 
+    private static final String KEY_STORE_PATH = "src/keystore_client.jks";
+    private static final String KEY_STORE_PASSWORD = "sigurnost";
+    private static final String TRUST_STORE_PATH = "src/truststore_client.jks";
+    private static final String TRUST_STORE_PASSWORD = "sigurnost";
     public static String IP_ADDRESS;
     public static int TCP_PORT;
     private static String LOCATION_API;
@@ -43,7 +49,7 @@ public class MainMenuController implements Initializable {
 
     }
 
-    public static Socket sock = null;
+    public static SSLSocket sock = null;
     public static BufferedReader in = null;
     public static PrintWriter out = null;
 
@@ -253,8 +259,15 @@ public class MainMenuController implements Initializable {
 
     private void initChat() {
         try {
+            System.setProperty("javax.net.ssl.keyStore", KEY_STORE_PATH);
+            System.setProperty("javax.net.ssl.keyStorePassword", KEY_STORE_PASSWORD);
+
+            System.setProperty("javax.net.ssl.trustStore", TRUST_STORE_PATH);
+            System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
+
             InetAddress addr = InetAddress.getByName(IP_ADDRESS);
-            sock = new Socket(addr, TCP_PORT);
+            SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            sock = (SSLSocket) sf.createSocket(addr, TCP_PORT);
 
             in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
             out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())), true);

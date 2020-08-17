@@ -33,4 +33,16 @@ public class ConfigUtil {
         JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
         return jsonObject.get("centralRegisterPort").getAsInt();
     }
+
+    public static int getMulticastChatServerPort() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("multicastChatServerPort").getAsInt();
+    }
+
+    public static String getMulticastChatServerAddress() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("multiCastAddress").getAsString();
+    }
 }

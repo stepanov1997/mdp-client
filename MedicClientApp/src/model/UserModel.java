@@ -117,12 +117,7 @@ public class UserModel {
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("token", token);
                 jsonObject.addProperty("userType", markButton.getSelectionModel().getSelectedItem());
-                try {
-                    response = request.async().post(Entity.entity(jsonObject.toString(), MediaType.APPLICATION_JSON)).get();
-                } catch (InterruptedException | ExecutionException e) {
-                    Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Unsuccessfully marking person.").showAndWait());
-                    return;
-                }
+                response = request.post(Entity.entity(jsonObject.toString(), MediaType.APPLICATION_JSON));
                 if (response.getStatusInfo().getFamily().compareTo(Response.Status.Family.SUCCESSFUL) != 0) {
                     Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Unsuccessfully marking person.").showAndWait());
                     return;

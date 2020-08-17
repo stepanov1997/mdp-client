@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
@@ -23,12 +24,22 @@ public class LocalLoginController implements Initializable {
     private Text welcome;
     @FXML
     private TextField passwordField;
+    @FXML
+    private Button signoutButton;
 
     public LocalLoginController() {
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        signoutButton.setOnAction(event -> {
+            CurrentUser.setPassword("");
+            CurrentUser.setToken("");
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/sign-in.fxml","/view/css/main-menu.css", new SignInController(), 400, 300);
+            Stage stage = (Stage)signoutButton.getScene().getWindow();
+            stage.setScene(scene);
+            StageUtil.centerStage(stage);
+        });
     }
 
     @FXML
