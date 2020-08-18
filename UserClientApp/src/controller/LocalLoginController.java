@@ -12,10 +12,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import soap.Application_PortType;
+import soap.Application_Service;
+import soap.Application_ServiceLocator;
 import util.*;
 
+import javax.xml.rpc.ServiceException;
 import java.io.IOException;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 
@@ -45,6 +50,17 @@ public class LocalLoginController implements Initializable {
     @FXML
     public void login(ActionEvent actionEvent){
         String passwordHash = CurrentUser.getPasswordHash();
+        try {
+            Application_PortType application = new Application_ServiceLocator().getApplication();
+            boolean isOk = application.checkToken(CurrentUser.getToken());
+            if(!isOk){
+                new Alert(Alert.AlertType.ERROR, "Unsuccessfully login. Bad token.").showAndWait();
+                return;
+            }
+        } catch (ServiceException | RemoteException e) {
+            new Alert(Alert.AlertType.ERROR, "Token server is offline. Try again later.").showAndWait();
+            return;
+        }
         if(passwordHash==null || !passwordHash.equals(SHA1.encryptPassword(passwordField.getText())))
         {
             new Alert(Alert.AlertType.ERROR, "Password is not OK.").showAndWait();

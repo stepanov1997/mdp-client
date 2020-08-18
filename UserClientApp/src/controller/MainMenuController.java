@@ -52,6 +52,7 @@ public class MainMenuController implements Initializable {
     public static SSLSocket sock = null;
     public static BufferedReader in = null;
     public static PrintWriter out = null;
+    private boolean isOpened = false;
 
     private Queue<File> listFiles = new LinkedList<>();
 
@@ -69,7 +70,7 @@ public class MainMenuController implements Initializable {
         }
 
         try {
-            LOCATION_API = "http://"+ConfigUtil.getServerHostname()+":"+ConfigUtil.getCentralRegisterPort()+"/api/locations";
+            LOCATION_API = "http://" + ConfigUtil.getServerHostname() + ":" + ConfigUtil.getCentralRegisterPort() + "/api/locations";
         } catch (IOException e) {
             LOCATION_API = "http://127.0.0.1:8081/api/locations";
         }
@@ -105,6 +106,8 @@ public class MainMenuController implements Initializable {
     private HBox fromDateTime;
     @FXML
     private HBox toDateTime;
+    @FXML
+    private Button reconnectButton;
 
     private Pane[][] fields;
     private final Object _locker = new Object();
@@ -121,7 +124,18 @@ public class MainMenuController implements Initializable {
         initSendLocationButton();
         initSendMessageButton();
         initSendDocumentsButton();
+        initReconnectButton();
         new Thread(this::initChat).start();
+    }
+
+    private void initReconnectButton() {
+        reconnectButton.setVisible(false);
+        reconnectButton.setOnAction(event -> {
+            message.setVisible(true);
+            sendMessageButton.setVisible(true);
+            reconnectButton.setVisible(false);
+            new Thread(this::initChat).start();
+        });
     }
 
     private void initDateTimePicker() {
@@ -218,15 +232,13 @@ public class MainMenuController implements Initializable {
             StageUtil.centerStage(stage);
         });
         changePasswordItem.setOnAction(actionEvent -> {
-            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/passwordChanging.fxml", "/view/css/sign-in.css", new PasswordChangingController(), 400, 300);
-            Stage stage = new Stage();
-            stage.setScene(scene);
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.showAndWait();
+            Stage stage = (Stage) sendDocumentsButton.getScene().getWindow();
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/passwordChanging.fxml", "/view/css/sign-in.css", new PasswordChangingController(stage), 400, 300);
+            Stage newStage = new Stage();
+            newStage.setScene(scene);
+            newStage.showAndWait();
         });
-        closeApplication.setOnAction(actionEvent -> {
-            System.exit(0);
-        });
+        closeApplication.setOnAction(actionEvent -> System.exit(0));
     }
 
     private void initSendMessageButton() {
@@ -237,20 +249,23 @@ public class MainMenuController implements Initializable {
                 var context = new Object() {
                     String text = message.getText();
                 };
-
-                if (out != null) {
-                    context.text = context.text.replaceAll("\\n", "").replaceAll("\\r", "");
-                    out.println(context.text);
-                    System.out.println("Data to write: \"" + context.text + "\"");
-                    Platform.runLater(() -> chat.setText(chat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
-                    Platform.runLater(() -> message.setText(""));
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                if (isOpened) {
+                    if (out != null) {
+                        context.text = context.text.replaceAll("\\n", "").replaceAll("\\r", "");
+                        out.println(context.text);
+                        System.out.println("Data to write: \"" + context.text + "\"");
+                        Platform.runLater(() -> chat.setText(chat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
+                        Platform.runLater(() -> message.setText(""));
+                        try {
+                            Thread.sleep(300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
                     }
                 } else {
-                    new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
+                    new Alert(Alert.AlertType.WARNING, "Connection is closed.").showAndWait();
                 }
                 Platform.runLater(() -> sendMessageButton.setDisable(false));
             }
@@ -273,8 +288,10 @@ public class MainMenuController implements Initializable {
             out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())), true);
 
             var ref = new Object() {
-                final boolean flag = true;
+                boolean flag = true;
             };
+
+            isOpened = true;
 
             out.println("Token: " + CurrentUser.getToken());
 
@@ -282,10 +299,22 @@ public class MainMenuController implements Initializable {
             while (ref.flag) {
                 char[] response = new char[1024];
                 try {
-                    in.read(response);
+                    int read = in.read(response);
                     String result = String.valueOf(response).trim();
-                    if (result.isBlank())
+                    if (read == 0 || result.isBlank())
                         continue;
+                    if (result.startsWith("END")) {
+                        Platform.runLater(() -> {
+                            chat.setText(chat.getText() + "---MEDIC ENDED SESSION---" + System.lineSeparator());
+                            sendMessageButton.setVisible(false);
+                            message.setVisible(false);
+                            reconnectButton.setVisible(true);
+                        });
+                        isOpened = false;
+                        in.close();
+                        out.close();
+                        break;
+                    }
                     System.out.println("Read data: \"" + String.valueOf(response) + "\"");
                     Platform.runLater(() -> chat.setText(chat.getText() + result + System.lineSeparator()));
                     Platform.runLater(() -> chat.setScrollTop(chat.getHeight()));
@@ -294,12 +323,13 @@ public class MainMenuController implements Initializable {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                } catch (IOException ignored) {
-                    ignored.printStackTrace();
+                } catch (IOException ex) {
+                    new Alert(Alert.AlertType.ERROR, "Problem with reading messages.").showAndWait();
+                    return;
                 }
             }
         } catch (IOException e1) {
-            e1.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Chat server is offline. Try again later.").showAndWait();
         }
     }
 
@@ -334,7 +364,7 @@ public class MainMenuController implements Initializable {
                         Arrays.stream(fields).flatMap(Stream::of).forEach(elem -> elem.getStyleClass().remove("pane-active"));
                         field.getStyleClass().add("pane-active");
                         Platform.runLater(() -> {
-                            coords.setUserData(new Pair<Integer, Integer>(coords1, coords2));
+                            coords.setUserData(new Pair<>(coords1, coords2));
                             coords.setText("[ " + coords1 + ", " + coords2 + " ]");
                         });
                     }
@@ -361,9 +391,7 @@ public class MainMenuController implements Initializable {
         CustomBinding.bindBidirectional(dateTimePicker.dateTimeValueProperty(), dateTimePicker.dateTimeValueProperty(),
                 dt -> dt, dt -> dt);
 
-        dateTimePicker.dateTimeValueProperty().addListener(((observable, value, newValue) -> {
-            dateTimePicker.getEditor().setText(newValue.format(DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss")));
-        }));
+        dateTimePicker.dateTimeValueProperty().addListener(((observable, value, newValue) -> dateTimePicker.getEditor().setText(newValue.format(DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss")))));
 
         return dateTimePicker;
     }

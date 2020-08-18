@@ -5,5 +5,9 @@
   "multicastChatServerPort": 8086,
   "tokenServerPort": 8083,
   "centralRegisterPort": 8081,
-  "fileServerPort": 1099
+  "fileServerPort": 1099,
+  "keystorePath": "src/keystore_client.jks",
+  "keystorePassword": "sigurnost",
+  "truststorePath": "src/truststore_client.jks",
+  "truststorePassword": "sigurnost"
 }

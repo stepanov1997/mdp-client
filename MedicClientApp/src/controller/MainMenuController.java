@@ -22,10 +22,46 @@ import java.util.stream.Collectors;
 
 public class MainMenuController implements Initializable {
 
-    private static final String KEY_STORE_PATH = "src/keystore_client.jks";
-    private static final String KEY_STORE_PASSWORD = "sigurnost";
-    private static final String TRUST_STORE_PATH = "src/truststore_client.jks";
-    private static final String TRUST_STORE_PASSWORD = "sigurnost";
+    private static String KEY_STORE_PATH = null;
+
+    static {
+        try {
+            KEY_STORE_PATH = ConfigUtil.getKeystorePath();
+        } catch (IOException ioException) {
+            KEY_STORE_PATH = "src/keystore_client.jks";
+        }
+    }
+
+    private static String KEY_STORE_PASSWORD = null;
+
+    static {
+        try {
+            KEY_STORE_PASSWORD = ConfigUtil.getKeystorePassword();
+        } catch (IOException ioException) {
+            KEY_STORE_PASSWORD = "sigurnost";
+        }
+    }
+
+    private static String TRUST_STORE_PATH = null;
+
+    static {
+        try {
+            TRUST_STORE_PATH = ConfigUtil.getTruststorePath();
+        } catch (IOException ioException) {
+            TRUST_STORE_PATH = "src/truststore_client.jks";
+        }
+    }
+
+    private static String TRUST_STORE_PASSWORD = null;
+
+    static {
+        try {
+            TRUST_STORE_PASSWORD = ConfigUtil.getTruststorePassword();
+        } catch (IOException ioException) {
+            TRUST_STORE_PASSWORD = "sigurnost";
+        }
+    }
+
     public static int TCP_PORT;
     public static int UDP_PORT;
     public static String IP_ADDRESS;
@@ -33,7 +69,7 @@ public class MainMenuController implements Initializable {
 
     static {
         try {
-        IP_ADDRESS = ConfigUtil.getServerHostname();
+            IP_ADDRESS = ConfigUtil.getServerHostname();
         } catch (IOException e) {
             IP_ADDRESS = "127.0.0.1";
         }
@@ -61,6 +97,7 @@ public class MainMenuController implements Initializable {
     PrintWriter outForPatient = null;
     BufferedReader inForMedics = null;
     PrintWriter outForMedics = null;
+    private String lastMessage = "";
 
     String msg = null;
     @FXML
@@ -85,6 +122,8 @@ public class MainMenuController implements Initializable {
     private TextArea patientChat;
     @FXML
     private TextArea medicsChat;
+    @FXML
+    private Button stopChatButton;
 
     public MainMenuController() {
     }
@@ -92,7 +131,14 @@ public class MainMenuController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initTable();
-        sendMessageButton.setOnAction(event -> {
+        stopChatButton.setOnAction(event -> sendMessage(true));
+        sendMessageButton.setOnAction(event -> sendMessage(false));
+        findButton.setOnAction(event -> new Thread(() -> importDataToTable(findTextField.getText())).start());
+        initChat();
+    }
+
+    private void sendMessage(boolean isStop) {
+        if (!isStop) {
             Platform.runLater(() -> sendMessageButton.setDisable(true));
 
             var context = new Object() {
@@ -122,6 +168,7 @@ public class MainMenuController implements Initializable {
                     try {
                         packet = new DatagramPacket(msg, msg.length,
                                 InetAddress.getByName(MULTICAST_ADDRESS), UDP_PORT);
+                        lastMessage = message.getText();
                         socketForMedics.send(packet);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -139,9 +186,16 @@ public class MainMenuController implements Initializable {
                 }
             }
             Platform.runLater(() -> sendMessageButton.setDisable(false));
-        });
-        findButton.setOnAction(event -> new Thread(() -> importDataToTable(findTextField.getText())).start());
-        initChat();
+        } else {
+            try {
+                outForPatient.println("END");
+                System.out.println("Data to write: \"END\"");
+                Platform.runLater(() -> patientChat.setText(patientChat.getText() + "[me]: END" + System.lineSeparator() + System.lineSeparator()));
+                Platform.runLater(() -> message.setText(""));
+            } catch (Exception e) {
+                new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
+            }
+        }
     }
 
     private void initTable() {
@@ -187,8 +241,10 @@ public class MainMenuController implements Initializable {
                 }
 
                 String result = new String(response).trim();
-                if (result.isBlank())
+                if (result.equals(lastMessage) || result.isBlank()) {
+                    lastMessage = "";
                     continue;
+                }
                 Platform.runLater(() -> medicsChat.setText(medicsChat.getText() + result + System.lineSeparator()));
                 Platform.runLater(() -> medicsChat.setScrollTop(medicsChat.getHeight()));
             }
@@ -215,14 +271,18 @@ public class MainMenuController implements Initializable {
             while (true) {
                 char[] response = new char[1024];
                 try {
-                    inForPatient.read(response);
+                    int read = inForPatient.read(response);
                     String result = String.valueOf(response).trim();
-                    if (result.isBlank())
+                    if (read == 0 || result.isBlank())
                         continue;
+                    if (result.startsWith("END")) {
+                        Platform.runLater(() -> patientChat.setText(""));
+                        continue;
+                    }
                     Platform.runLater(() -> patientChat.setText(patientChat.getText() + result + System.lineSeparator()));
                     Platform.runLater(() -> patientChat.setScrollTop(patientChat.getHeight()));
-                } catch (IOException ignored) {
-                    ignored.printStackTrace();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
             }
         }).start();

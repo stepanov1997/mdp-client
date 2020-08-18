@@ -25,6 +25,11 @@ public class PasswordChangingController implements Initializable {
     private PasswordField newPasswordAgainField;
     @FXML
     private Button changePasswordButton;
+    private Stage previousStage;
+
+    public PasswordChangingController(Stage stage) {
+        this.previousStage = stage;
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -48,6 +53,7 @@ public class PasswordChangingController implements Initializable {
                 new Alert(Alert.AlertType.ERROR, "New passwords do not match.").showAndWait();
                 return;
             }
+            previousStage.close();
             CurrentUser.setPassword(newPasswordField.getText());
             new Alert(Alert.AlertType.CONFIRMATION, "You successfully changed your password. Please login again.").showAndWait();
             LocalLoginController passwordController = new LocalLoginController();
@@ -57,5 +63,4 @@ public class PasswordChangingController implements Initializable {
             StageUtil.centerStage(stage);
         });
     }
-
 }

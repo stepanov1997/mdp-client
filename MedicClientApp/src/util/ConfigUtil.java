@@ -45,4 +45,29 @@ public class ConfigUtil {
         JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
         return jsonObject.get("multiCastAddress").getAsString();
     }
+
+    public static String getKeystorePath() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("keystorePath").getAsString();
+    }
+
+    public static String getTruststorePath() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("truststorePath").getAsString();
+    }
+
+    public static String getKeystorePassword() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("keystorePassword").getAsString();
+    }
+
+    public static String getTruststorePassword() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("truststorePassword").getAsString();
+    }
+
 }

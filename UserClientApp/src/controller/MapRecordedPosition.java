@@ -93,9 +93,7 @@ public class MapRecordedPosition implements Initializable {
         int rowsNum = mapa.getRowConstraints().size();
         fields = new Pane[rowsNum][columnsNum];
         for (int i = 0; i < rowsNum; i++) {
-            int coords1 = i;
             for (int j = 0; j < columnsNum; j++) {
-                int coords2 = j;
                 Pane field = new Pane();
                 fields[i][j] = field;
                 mapa.getChildren().add(field);
