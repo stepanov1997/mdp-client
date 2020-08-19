@@ -10,7 +10,6 @@ import java.nio.file.Path;
 
 public class ConfigUtil {
     public static String getServerHostname() throws IOException {
-        System.out.println(new File(".").getAbsolutePath());
         String config = Files.readString(Path.of("src/config.json"));
         JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
         return jsonObject.get("server").getAsString();

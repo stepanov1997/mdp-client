@@ -1,6 +1,7 @@
 package controller;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
@@ -9,11 +10,15 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+import model.Location;
+import model.Notification;
 import util.*;
 import view.datetime.DateTimePicker;
 
@@ -26,6 +31,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.Buffer;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -44,10 +50,7 @@ public class MainMenuController implements Initializable {
     public static String IP_ADDRESS;
     public static int TCP_PORT;
     private static String LOCATION_API;
-
-    static {
-
-    }
+    private static String NOTIFICATION_API;
 
     public static SSLSocket sock = null;
     public static BufferedReader in = null;
@@ -73,6 +76,12 @@ public class MainMenuController implements Initializable {
             LOCATION_API = "http://" + ConfigUtil.getServerHostname() + ":" + ConfigUtil.getCentralRegisterPort() + "/api/locations";
         } catch (IOException e) {
             LOCATION_API = "http://127.0.0.1:8081/api/locations";
+        }
+
+        try {
+            NOTIFICATION_API = "http://" + ConfigUtil.getServerHostname() + ":" + ConfigUtil.getCentralRegisterPort() + "/api/notifications/" + CurrentUser.getToken();
+        } catch (IOException e) {
+            NOTIFICATION_API = "http://127.0.0.1:8081/api/notifications/" + CurrentUser.getToken();
         }
     }
 
@@ -108,15 +117,29 @@ public class MainMenuController implements Initializable {
     private HBox toDateTime;
     @FXML
     private Button reconnectButton;
+    @FXML
+    private Text notificationText;
+    @FXML
+    private Button previousButton;
+    @FXML
+    private Button nextButton;
+    @FXML
+    private Button detailButton;
 
     private Pane[][] fields;
     private final Object _locker = new Object();
+
+    int currentNotification = 0;
+    List<Notification> notifications = new ArrayList<>();
 
     public MainMenuController() {
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        initNotifications();
+        showNotification();
+        initPreviousAndNext();
         initMenu();
         initMap();
         initPicker();
@@ -126,6 +149,113 @@ public class MainMenuController implements Initializable {
         initSendDocumentsButton();
         initReconnectButton();
         new Thread(this::initChat).start();
+    }
+
+    private void initPreviousAndNext() {
+        previousButton.setOnMouseClicked(mouseEvent -> {
+            if (currentNotification - 1 < 0) {
+                currentNotification = notifications.size() + currentNotification - 1;
+            } else
+                currentNotification = (currentNotification - 1) % notifications.size();
+            showNotification();
+        });
+        nextButton.setOnMouseClicked(mouseEvent -> {
+            currentNotification = (currentNotification + 1) % notifications.size();
+            showNotification();
+        });
+    }
+
+    private void showNotification() {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    if (currentNotification > notifications.size() - 1) {
+                        Platform.runLater(() -> {
+                            notificationText.setText("No notifications.");
+                            detailButton.setVisible(false);
+                            previousButton.setVisible(false);
+                            nextButton.setVisible(false);
+                        });
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        continue;
+                    } else {
+                        Platform.runLater(() -> {
+                            detailButton.setVisible(true);
+                            previousButton.setVisible(true);
+                            nextButton.setVisible(true);
+                        });
+                    }
+                    Notification latest = notifications.get(currentNotification);
+                    Platform.runLater(() -> notificationText.setText((notifications.size() - currentNotification + 1) + ". Infection: " + latest.getInfection()));
+                    detailButton.setOnAction(event -> {
+                        if ("medic".equals(latest.getTypeOfNotification()))
+                            Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION,
+                                    "Medic marked you as " + latest.getInfection().toLowerCase() + " after chatting with you.").showAndWait());
+                        else {
+                            Platform.runLater(() -> {
+                                DetailNotificationController detailNotificationController = new DetailNotificationController(latest);
+                                Stage stage = new Stage();
+                                Scene scene = FXMLHelper.getInstance().loadNewScene("/view/map-recorded-position.fxml", "/view/css/main-menu.css", detailNotificationController, 900, 600);
+                                stage.setScene(scene);
+                                stage.initModality(Modality.APPLICATION_MODAL);
+                                stage.showAndWait();
+                            });
+                        }
+                    });
+                } catch (Exception e) {
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private void initNotifications() {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Client client = ClientBuilder.newClient();
+                    WebTarget target = client.target(NOTIFICATION_API);
+                    Invocation.Builder request = target.request(MediaType.APPLICATION_JSON);
+                    Response response = request.get();
+                    String entity = response.readEntity(String.class);
+                    JsonObject jsonObject = (JsonObject) JsonParser.parseString(entity);
+                    String typeOfNotification = jsonObject.get("typeOfNotification").getAsString();
+                    if ("medic".equals(typeOfNotification)) {
+                        notifications.add(new Notification(
+                                jsonObject.get("token").getAsString(),
+                                jsonObject.get("infection").getAsString(),
+                                jsonObject.get("typeOfNotification").getAsString()
+                        ));
+                    } else {
+                        notifications.add(new Notification(
+                                jsonObject.get("token").getAsString(),
+                                jsonObject.get("potential_contact_from").getAsString(),
+                                jsonObject.get("potential_contact_to").getAsString(),
+                                jsonObject.get("interval").getAsInt(),
+                                jsonObject.get("lat").getAsInt(),
+                                jsonObject.get("long").getAsInt(),
+                                jsonObject.get("distance").getAsInt(),
+                                jsonObject.get("infection").getAsString(),
+                                jsonObject.get("typeOfNotification").getAsString()
+                        ));
+                    }
+                } catch (Exception e) {
+                }
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException interruptedException) {
+                    interruptedException.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     private void initReconnectButton() {
@@ -273,30 +403,39 @@ public class MainMenuController implements Initializable {
     }
 
     private void initChat() {
-        try {
-            System.setProperty("javax.net.ssl.keyStore", KEY_STORE_PATH);
-            System.setProperty("javax.net.ssl.keyStorePassword", KEY_STORE_PASSWORD);
+        while (true) {
+            boolean first = true;
+            while (true) {
+                try {
+                    System.setProperty("javax.net.ssl.keyStore", KEY_STORE_PATH);
+                    System.setProperty("javax.net.ssl.keyStorePassword", KEY_STORE_PASSWORD);
 
-            System.setProperty("javax.net.ssl.trustStore", TRUST_STORE_PATH);
-            System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
+                    System.setProperty("javax.net.ssl.trustStore", TRUST_STORE_PATH);
+                    System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
 
-            InetAddress addr = InetAddress.getByName(IP_ADDRESS);
-            SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
-            sock = (SSLSocket) sf.createSocket(addr, TCP_PORT);
+                    InetAddress addr = InetAddress.getByName(IP_ADDRESS);
+                    SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
+                    sock = (SSLSocket) sf.createSocket(addr, TCP_PORT);
 
-            in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())), true);
+                    in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                    out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())), true);
 
-            var ref = new Object() {
-                boolean flag = true;
-            };
-
-            isOpened = true;
-
-            out.println("Token: " + CurrentUser.getToken());
-
+                    isOpened = true;
+                    out.println("Token: " + CurrentUser.getToken());
+                    break;
+                } catch (Exception exception) {
+                    if (first)
+                        Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Chat server is offline.").showAndWait());
+                    first = false;
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Chat server is offline.").showAndWait());
+                    }
+                }
+            }
             // prikaz poruka
-            while (ref.flag) {
+            while (true) {
                 char[] response = new char[1024];
                 try {
                     int read = in.read(response);
@@ -324,12 +463,10 @@ public class MainMenuController implements Initializable {
                         e.printStackTrace();
                     }
                 } catch (IOException ex) {
-                    new Alert(Alert.AlertType.ERROR, "Problem with reading messages.").showAndWait();
-                    return;
+                    isOpened = false;
+                    break;
                 }
             }
-        } catch (IOException e1) {
-            new Alert(Alert.AlertType.ERROR, "Chat server is offline. Try again later.").showAndWait();
         }
     }
 

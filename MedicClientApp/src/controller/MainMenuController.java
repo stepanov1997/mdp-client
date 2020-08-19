@@ -124,6 +124,7 @@ public class MainMenuController implements Initializable {
     private TextArea medicsChat;
     @FXML
     private Button stopChatButton;
+    private boolean isOpened = false;
 
     public MainMenuController() {
     }
@@ -146,10 +147,9 @@ public class MainMenuController implements Initializable {
             };
 
             if (tabPatient.isSelected()) {
-                if (outForPatient != null) {
+                if (outForPatient != null && isOpened) {
                     context.text = context.text.replaceAll("\\r\\n", "");
                     outForPatient.println(context.text);
-                    System.out.println("Data to write: \"" + context.text + "\"");
                     Platform.runLater(() -> patientChat.setText(patientChat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
                     Platform.runLater(() -> message.setText(""));
                     try {
@@ -158,7 +158,7 @@ public class MainMenuController implements Initializable {
                         e.printStackTrace();
                     }
                 } else {
-                    new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
+                    new Alert(Alert.AlertType.WARNING, "Connection is closed.").showAndWait();
                 }
             } else if (tabMedics.isSelected()) {
                 if (socketForMedics != null) {
@@ -171,15 +171,14 @@ public class MainMenuController implements Initializable {
                         lastMessage = message.getText();
                         socketForMedics.send(packet);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        new Alert(Alert.AlertType.WARNING, "Can't send message.").showAndWait();
                     }
-                    System.out.println("Data to write: \"" + context.text + "\"");
                     Platform.runLater(() -> medicsChat.setText(medicsChat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
                     Platform.runLater(() -> message.setText(""));
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        new Alert(Alert.AlertType.WARNING, "Problem.").showAndWait();
                     }
                 } else {
                     new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
@@ -189,9 +188,9 @@ public class MainMenuController implements Initializable {
         } else {
             try {
                 outForPatient.println("END");
-                System.out.println("Data to write: \"END\"");
                 Platform.runLater(() -> patientChat.setText(patientChat.getText() + "[me]: END" + System.lineSeparator() + System.lineSeparator()));
                 Platform.runLater(() -> message.setText(""));
+                isOpened = false;
             } catch (Exception e) {
                 new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
             }
@@ -201,7 +200,16 @@ public class MainMenuController implements Initializable {
     private void initTable() {
         tableView.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("token"));
         tableView.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("options"));
-        new Thread(() -> importDataToTable("")).start();
+        new Thread(() -> {
+            while (true) {
+                importDataToTable(findTextField.getText());
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    new Alert(Alert.AlertType.WARNING, "Problem.").showAndWait();
+                }
+            }
+        }).start();
     }
 
     private void importDataToTable(String filter) {
@@ -210,7 +218,6 @@ public class MainMenuController implements Initializable {
             tokens = new TokenServerClient().getActiveTokens();
         } catch (RemoteException | ServiceException exception) {
             Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Error..Try again later..").showAndWait());
-            exception.printStackTrace();
         }
         String[] finalTokens = tokens;
         Platform.runLater(() ->
@@ -228,7 +235,7 @@ public class MainMenuController implements Initializable {
                 socketForMedics = new MulticastSocket(UDP_PORT);
                 socketForMedics.joinGroup(addr);
             } catch (IOException ioException) {
-                ioException.printStackTrace();
+                new Alert(Alert.AlertType.WARNING, "Chat with group doesn't work.").showAndWait();
             }
             while (true) {
                 byte[] response = new byte[1024];
@@ -237,7 +244,7 @@ public class MainMenuController implements Initializable {
                 try {
                     socketForMedics.receive(msgPacket);
                 } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                    new Alert(Alert.AlertType.WARNING, "Reading messages doesn't work.").showAndWait();
                 }
 
                 String result = new String(response).trim();
@@ -251,38 +258,54 @@ public class MainMenuController implements Initializable {
         }).start();
 
         new Thread(() -> {
-            try {
-                System.setProperty("javax.net.ssl.keyStore", KEY_STORE_PATH);
-                System.setProperty("javax.net.ssl.keyStorePassword", KEY_STORE_PASSWORD);
-
-                System.setProperty("javax.net.ssl.trustStore", TRUST_STORE_PATH);
-                System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
-
-                InetAddress addr = InetAddress.getByName(IP_ADDRESS);
-                SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
-                socketForPatient = (SSLSocket) sf.createSocket(addr, TCP_PORT);
-
-                inForPatient = new BufferedReader(new InputStreamReader(socketForPatient.getInputStream()));
-                outForPatient = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socketForPatient.getOutputStream())), true);
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-                return;
-            }
             while (true) {
-                char[] response = new char[1024];
-                try {
-                    int read = inForPatient.read(response);
-                    String result = String.valueOf(response).trim();
-                    if (read == 0 || result.isBlank())
-                        continue;
-                    if (result.startsWith("END")) {
-                        Platform.runLater(() -> patientChat.setText(""));
-                        continue;
+                boolean first = true;
+                while (true) {
+                    try {
+                        System.setProperty("javax.net.ssl.keyStore", KEY_STORE_PATH);
+                        System.setProperty("javax.net.ssl.keyStorePassword", KEY_STORE_PASSWORD);
+
+                        System.setProperty("javax.net.ssl.trustStore", TRUST_STORE_PATH);
+                        System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
+
+                        InetAddress addr = InetAddress.getByName(IP_ADDRESS);
+                        SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
+                        socketForPatient = (SSLSocket) sf.createSocket(addr, TCP_PORT);
+
+                        inForPatient = new BufferedReader(new InputStreamReader(socketForPatient.getInputStream()));
+                        outForPatient = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socketForPatient.getOutputStream())), true);
+                        isOpened = true;
+                        Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION, "Chat server is online.").showAndWait());
+                        break;
+                    } catch (IOException ioException) {
+                        if (first)
+                            Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Chat server is offline.").showAndWait());
+                        first = false;
+                        isOpened = false;
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Chat server is offline.").showAndWait());
+                        }
                     }
-                    Platform.runLater(() -> patientChat.setText(patientChat.getText() + result + System.lineSeparator()));
-                    Platform.runLater(() -> patientChat.setScrollTop(patientChat.getHeight()));
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                }
+                while (true) {
+                    char[] response = new char[1024];
+                    try {
+                        int read = inForPatient.read(response);
+                        String result = String.valueOf(response).trim();
+                        if (read == 0 || result.isBlank())
+                            continue;
+                        if (result.startsWith("END")) {
+                            Platform.runLater(() -> patientChat.setText(""));
+                            continue;
+                        }
+                        Platform.runLater(() -> patientChat.setText(patientChat.getText() + result + System.lineSeparator()));
+                        Platform.runLater(() -> patientChat.setScrollTop(patientChat.getHeight()));
+                    } catch (IOException ex) {
+                        isOpened = false;
+                        break;
+                    }
                 }
             }
         }).start();

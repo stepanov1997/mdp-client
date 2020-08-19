@@ -1,9 +1,6 @@
 package model;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import controller.MapRecordedPosition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -27,6 +24,7 @@ import util.ConfigUtil;
 import util.FXMLHelper;
 import util.TableColumnPlus;
 
+import javax.json.Json;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -108,6 +106,33 @@ public class UserModel {
                 "Infected"
         )));
         markButton.setPromptText("Mark user");
+        Thread thread = new Thread(() -> {
+            try {
+                Client cli = ClientBuilder.newClient();
+                WebTarget webTarget = cli.target(USER_TYPE_API + "/" + token);
+                Invocation.Builder request1 = webTarget.request(MediaType.APPLICATION_JSON);
+                Response response1 = request1.get();
+                if (response1.getStatusInfo().getFamily().compareTo(Response.Status.Family.SUCCESSFUL) != 0) {
+                    Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Unsuccessfully init.").showAndWait());
+                    return;
+                }
+                JsonArray jsonArray = (JsonArray) JsonParser.parseString(response1.readEntity(String.class));
+                if (jsonArray.size() != 0) {
+                    JsonObject jsonObject1 = (JsonObject) jsonArray.get(0);
+                    String userType = jsonObject1.get("userType").getAsString();
+                    markButton.setValue(userType);
+                } else {
+                    markButton.setValue("Not infective");
+                }
+            } catch (Exception e) {
+            }
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         markButton.valueProperty().addListener((obs, oldItem, newItem) -> {
             new Thread(() -> {
                 Client client = ClientBuilder.newClient();
@@ -123,6 +148,7 @@ public class UserModel {
                     return;
                 }
                 Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION, "Successfully marking person").showAndWait());
+                Platform.runLater(refreshCallback);
             }).start();
         });
         gridPane.getChildren().add(markButton);

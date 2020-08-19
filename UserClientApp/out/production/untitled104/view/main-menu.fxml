@@ -119,18 +119,8 @@
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Label text="&lt; Previous" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Label>
-      <Label text="Next &gt;" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Label>
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Obavještenje" textAlignment="CENTER" wrappingWidth="232.8033390045166" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-      <Button mnemonicParsing="false" text="Detail" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
+      <Text fx:id="notificationText" strokeType="OUTSIDE" strokeWidth="0.0" text="No notifications" textAlignment="CENTER" wrappingWidth="232.8033390045166" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+      <Button fx:id="detailButton" mnemonicParsing="false" text="Detail" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
@@ -144,5 +134,7 @@
          </cursor>
       </Button>
       <Button fx:id="reconnectButton" mnemonicParsing="false" text="Reconnect" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="9" />
+      <Button fx:id="nextButton" mnemonicParsing="false" text="Next &gt;" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+      <Button fx:id="previousButton" mnemonicParsing="false" text="&lt; Previous" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
     </children>
 </GridPane>
