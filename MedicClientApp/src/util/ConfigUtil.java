@@ -69,4 +69,9 @@ public class ConfigUtil {
         return jsonObject.get("truststorePassword").getAsString();
     }
 
+    public static int getFileServerPort() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("fileServerPort").getAsInt();
+    }
 }

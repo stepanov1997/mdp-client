@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Font?>
+
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1">
+  <columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" percentWidth="10.0" />
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+    <ColumnConstraints hgrow="SOMETIMES" percentWidth="30.0" />
+      <ColumnConstraints hgrow="SOMETIMES" percentWidth="20.0" />
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+  </columnConstraints>
+  <rowConstraints>
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+  </rowConstraints>
+   <children>
+      <Button fx:id="downloadButton" mnemonicParsing="false" text="Download checked documentation" GridPane.columnSpan="5" GridPane.halignment="CENTER" GridPane.rowIndex="10" GridPane.rowSpan="2" />
+      <Label fx:id="size1" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="332.0" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="5" />
+      <Label fx:id="size2" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="332.0" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="6" />
+      <Label fx:id="size3" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="332.0" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="7" />
+      <Label fx:id="size4" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="332.0" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="8" />
+      <Label fx:id="size5" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="332.0" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="9" />
+      <CheckBox fx:id="check1" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+      <CheckBox fx:id="check2" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+      <CheckBox fx:id="check4" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+      <CheckBox fx:id="check3" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+      <CheckBox fx:id="check5" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+      <Label fx:id="name1" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+      <Label fx:id="name2" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="6" />
+      <Label fx:id="name3" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="7" />
+      <Label fx:id="name4" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="8" />
+      <Label fx:id="name5" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="9" />
+      <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="File name:" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+      <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="File size:" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="4" />
+      <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Documentation" textAlignment="CENTER" GridPane.columnSpan="5" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </Label>
+      <Label fx:id="tokenLabel" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Token: " textAlignment="CENTER" GridPane.columnSpan="5" GridPane.rowIndex="2">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Separator maxWidth="1.7976931348623157E308" GridPane.columnSpan="5" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+      <Button fx:id="open1" mnemonicParsing="false" text="Open doc" GridPane.columnIndex="4" GridPane.rowIndex="5" />
+      <Button fx:id="open2" mnemonicParsing="false" text="Open doc" GridPane.columnIndex="4" GridPane.rowIndex="6" />
+      <Button fx:id="open3" mnemonicParsing="false" text="Open doc" GridPane.columnIndex="4" GridPane.rowIndex="7" />
+      <Button fx:id="open4" mnemonicParsing="false" text="Open doc" GridPane.columnIndex="4" GridPane.rowIndex="8" />
+      <Button fx:id="open5" mnemonicParsing="false" text="Open doc" GridPane.columnIndex="4" GridPane.rowIndex="9" />
+      <Button fx:id="openFolderButton" mnemonicParsing="false" text="Open folder" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="10" GridPane.rowSpan="2" GridPane.valignment="CENTER">
+         <GridPane.margin>
+            <Insets />
+         </GridPane.margin>
+      </Button>
+   </children>
+</GridPane>

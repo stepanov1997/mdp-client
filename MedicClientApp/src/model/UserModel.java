@@ -1,30 +1,25 @@
 package model;
 
 import com.google.gson.*;
+import controller.DocumentationController;
 import controller.MapRecordedPosition;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import soap.Application_PortType;
 import soap.Application_ServiceLocator;
 import util.ConfigUtil;
 import util.FXMLHelper;
-import util.TableColumnPlus;
 
-import javax.json.Json;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -32,10 +27,6 @@ import javax.xml.rpc.ServiceException;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class UserModel {
 
@@ -56,9 +47,9 @@ public class UserModel {
         this.token = new SimpleStringProperty(token);
 
         GridPane gridPane = new GridPane();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             ColumnConstraints columnConstraints = new ColumnConstraints();
-            columnConstraints.setPercentWidth(33.3);
+            columnConstraints.setPercentWidth(25);
             gridPane.getColumnConstraints().add(columnConstraints);
         }
         Button mapButton = new Button();
@@ -153,6 +144,16 @@ public class UserModel {
         });
         gridPane.getChildren().add(markButton);
         GridPane.setColumnIndex(markButton, 2);
+
+        Button documentationButton = new Button("Docs");
+        documentationButton.setOnAction(elem -> {
+            Stage stage = new Stage();
+            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/documentation.fxml", "/view/css/main-menu.css", new DocumentationController(token));
+            stage.setScene(scene);
+            stage.showAndWait();
+        });
+        gridPane.getChildren().add(documentationButton);
+        GridPane.setColumnIndex(documentationButton, 3);
 
         this.options = new SimpleObjectProperty<>(gridPane);
     }
