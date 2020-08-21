@@ -262,6 +262,11 @@ public class MainMenuController implements Initializable {
                 boolean first = true;
                 while (true) {
                     try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    try {
                         System.setProperty("javax.net.ssl.keyStore", KEY_STORE_PATH);
                         System.setProperty("javax.net.ssl.keyStorePassword", KEY_STORE_PASSWORD);
 

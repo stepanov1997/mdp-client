@@ -22,6 +22,7 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class DocumentationController implements Initializable {
     private String token;
@@ -85,6 +86,7 @@ public class DocumentationController implements Initializable {
     public DocumentationController() {
 
     }
+
     public DocumentationController(String token) {
         this.token = token;
     }
@@ -101,33 +103,32 @@ public class DocumentationController implements Initializable {
     }
 
     private void initFileWatcher() {
-        new Thread(()-> {
-            Path path = Paths.get("files"+File.separator+token);
-            try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-                final WatchKey watchKey = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
-                while (true) {
-                    final WatchKey wk = watchService.take();
-                    for (WatchEvent<?> event : wk.pollEvents()) {
-                        //we only register "ENTRY_MODIFY" so the context is always a Path.
-                        final Path changed = (Path) event.context();
-                        System.out.println(changed);
-                        for(int i=0; i<5; i++){
-                            if(changed.toString().contains(names[i].getText())){
-                                int finalI1 = i;
-                                Platform.runLater(()->opens[finalI1].setVisible(true));
-                                int finalI = i;
-                                opens[i].setOnAction(event1 -> {
-                                    openFile(names[finalI].getText());
-                                });
-                            }
-                        }
-                    }
-                    // reset the key
-                    boolean valid = wk.reset();
-                }
-            } catch (IOException | InterruptedException ioException) {
-                ioException.printStackTrace();
-            }
+        new Thread(() -> {
+            new File("files" + File.separator + token).mkdirs();
+//            Path path = Paths.get("files" + File.separator + token);
+//            try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
+//                final WatchKey watchKey = path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+//                while (true) {
+//                    final WatchKey wk = watchService.take();
+//                    for (WatchEvent<?> event : wk.pollEvents()) {
+//                        //we only register "ENTRY_MODIFY" so the context is always a Path.
+//                        final Path changed = (Path) event.context();
+//                        System.out.println(changed);
+//                        for (int i = 0; i < 5; i++) {
+//
+//                            if (changed.toString().contains(names[i].getText())) {
+//                                int finalI1 = i;
+//                                Platform.runLater(() -> opens[finalI1].setVisible(true));
+//                                int finalI = i;
+//                            }
+//                        }
+//                    }
+//                    // reset the key
+//                    boolean valid = wk.reset();
+//                }
+//            } catch (IOException | InterruptedException ioException) {
+//                ioException.printStackTrace();
+//            }
         }).start();
 
     }
@@ -136,6 +137,7 @@ public class DocumentationController implements Initializable {
         new Thread(() -> {
             for (int i = 0; i < 5; i++) {
                 checkBoxes[i].setSelected(false);
+                checkBoxes[i].setVisible(false);
                 names[i].setText("");
                 sizes[i].setText("");
                 sizes[i].setUserData(null);
@@ -154,16 +156,31 @@ public class DocumentationController implements Initializable {
             try {
                 IFileServer srv = (IFileServer) Naming.lookup("rmi://" + hostname + ":" + port + "/" + nm);
                 HashMap<String, Long> filePathsForToken = srv.getFilePathsForToken(token);
-                Queue<Label> nameQueue = new LinkedList<>(Arrays.asList(name1, name2, name3, name4, name5));
-                Queue<Label> sizeQueue = new LinkedList<>(Arrays.asList(size1, size2, size3, size4, size5));
+                Queue<Button> openQueue = new LinkedList<>(Arrays.asList(opens));
+                Queue<CheckBox> checkBoxQueue = new LinkedList<>(Arrays.asList(checkBoxes));
+                Queue<Label> nameQueue = new LinkedList<>(Arrays.asList(names));
+                Queue<Label> sizeQueue = new LinkedList<>(Arrays.asList(sizes));
                 filePathsForToken.forEach((name, size) -> {
+                    Button openButton = openQueue.remove();
+                    CheckBox checkBox = checkBoxQueue.remove();
                     Label nameLabel = nameQueue.remove();
                     Label sizeLabel = sizeQueue.remove();
+
                     Platform.runLater(() -> {
+                        checkBox.setVisible(true);
                         nameLabel.setText(name);
                         sizeLabel.setUserData(size);
                         sizeLabel.setText(SizeUtil.toNumInUnits(size));
                     });
+
+                    if (Stream.of(new File("files" + File.separator + token + File.separator).listFiles()).anyMatch(elem -> elem.getName().equals(name))) {
+                        Platform.runLater(() -> {
+                            checkBox.setSelected(true);
+                            openButton.setVisible(true);
+                            openButton.setOnAction(elem -> openFile(name));
+                            checkBox.setDisable(true);
+                        });
+                    }
                 });
             } catch (NotBoundException | MalformedURLException | RemoteException e) {
                 e.printStackTrace();
@@ -178,11 +195,12 @@ public class DocumentationController implements Initializable {
             new Thread(() -> {
                 for (int i = 0; i < checkBoxes.length; i++) {
                     CheckBox checkBox = checkBoxes[i];
-                    if (checkBox.isSelected()) {
+                    if (checkBox.isSelected() && !checkBox.isDisabled()) {
                         Label label = sizes[i];
-                        Long number = (Long)label.getUserData();
+                        Long number = (Long) label.getUserData();
                         String name = names[i].getText();
                         RmiClient.downloadFilesFromServer(token, name, number);
+                        opens[i].setVisible(true);
                     }
                 }
             }).start();
@@ -190,17 +208,26 @@ public class DocumentationController implements Initializable {
         openFolderButton.setOnAction(event -> {
             new Thread(() -> {
                 try {
-                    Runtime.getRuntime().exec("explorer /select, " + new File("files/" + token).getAbsolutePath());
+                    Desktop.getDesktop().open(new File("files/" + token).getAbsoluteFile());
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
             }).start();
         });
-        open1.setOnAction(event -> Platform.runLater(() -> openFile(name1.getText())));
-        open2.setOnAction(event -> Platform.runLater(() -> openFile(name2.getText())));
-        open3.setOnAction(event -> Platform.runLater(() -> openFile(name3.getText())));
-        open4.setOnAction(event -> Platform.runLater(() -> openFile(name4.getText())));
-        open5.setOnAction(event -> Platform.runLater(() -> openFile(name5.getText())));
+        for(int i=0; i<5; i++){
+            int finalI = i;
+            opens[i].setOnAction(event -> {
+                new Thread(()-> {
+                    File file = new File("files" + File.separator + token + File.separator+ names[finalI].getText());
+                    Long length = file.length();
+                    Long userData = (Long) sizes[finalI].getUserData();
+                    if(Math.abs(length-userData)>0){
+                        Platform.runLater(()->new Alert(Alert.AlertType.INFORMATION, "File is not transfered yet... Wait...").showAndWait());
+                    }
+                    else openFile(names[finalI].getText());
+                }).start();
+            });
+        }
     }
 
     private void openFile(String name) {

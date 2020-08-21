@@ -284,16 +284,23 @@ public class MainMenuController implements Initializable {
                 return;
             }
             try {
-                while (!listFiles.isEmpty()) {
-                    File file = listFiles.poll();
-                    new Thread(() -> RmiClient.sendFileToServer(file)).start();
-                }
+                new Thread(() -> {
+                    Platform.runLater(()-> sendDocumentsButton.setDisable(true));
+                    while (!listFiles.isEmpty()) {
+                        File file = listFiles.poll();
+                        RmiClient.sendFileToServer(file);
+                        Platform.runLater(()-> new Alert(Alert.AlertType.INFORMATION, "Successfully sended "+file.getName()).showAndWait());
+                    }
+                    Platform.runLater(()-> {
+                        new Alert(Alert.AlertType.INFORMATION, "Successfully sending files to file server.").showAndWait();
+                        sendDocumentsButton.setDisable(false);
+                    });
+                }).start();
             } catch (Exception e) {
                 new Alert(Alert.AlertType.ERROR, "Unsuccessfully sending files to file server.").showAndWait();
                 return;
             }
-            new Alert(Alert.AlertType.INFORMATION, "Successfully sending files to file server.").showAndWait();
-        });
+             });
     }
 
     private void initSendLocationButton() {
