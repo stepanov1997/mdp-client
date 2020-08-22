@@ -4,10 +4,6 @@
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -45,24 +41,6 @@
         <RowConstraints percentHeight="0.0" vgrow="SOMETIMES" />
     </rowConstraints>
     <children>
-        <MenuBar prefHeight="25.0" prefWidth="2.31231213E8" GridPane.columnSpan="8" GridPane.valignment="TOP">
-            <menus>
-                <Menu mnemonicParsing="false" text="Options">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Map of recorded positions" />
-                        <MenuItem mnemonicParsing="false" text="Application usage" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Unsubscribe from the register" />
-                        <MenuItem mnemonicParsing="false" text="Close application" />
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Settings">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Change password" />
-                    </items>
-                </Menu>
-            </menus>
-        </MenuBar>
         <TextArea fx:id="message" maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="7" GridPane.rowSpan="2">
             <GridPane.margin>
                 <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />

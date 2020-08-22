@@ -22,9 +22,14 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class DocumentationController implements Initializable {
+    private static final Logger LOGGER = Logger.getLogger(DocumentationController.class.getName());
+
+
     private String token;
 
     @FXML
@@ -183,7 +188,7 @@ public class DocumentationController implements Initializable {
                     }
                 });
             } catch (NotBoundException | MalformedURLException | RemoteException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.WARNING, "Cannot open folder.", "Cannot ");
             }
         }).start();
     }
@@ -210,7 +215,7 @@ public class DocumentationController implements Initializable {
                 try {
                     Desktop.getDesktop().open(new File("files/" + token).getAbsoluteFile());
                 } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                    LOGGER.log(Level.WARNING, "Cannot open folder.", ioException);
                 }
             }).start();
         });
@@ -242,7 +247,7 @@ public class DocumentationController implements Initializable {
                 try {
                     desktop.open(file);
                 } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                    LOGGER.log(Level.WARNING, "Cannot open folder.", ioException);
                 }
             } else {
                 new Alert(Alert.AlertType.INFORMATION, "File doesn't exist").showAndWait();

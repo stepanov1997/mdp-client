@@ -19,9 +19,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class ApplicationUsageController implements Initializable {
+    private static final Logger LOGGER = Logger.getLogger(ApplicationUsageController.class.getName());
+
     @FXML
     private TableView<ActivityModel> tableView;
 
@@ -38,6 +42,7 @@ public class ApplicationUsageController implements Initializable {
         try {
             rows = ActivityUtil.readActivities();
         } catch (Exception ioException) {
+            LOGGER.log(Level.WARNING, "Cannot read activities.", ioException);
             rows = new ArrayList<>();
         }
         List<ActivityModel> activities = rows

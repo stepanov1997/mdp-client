@@ -1,7 +1,13 @@
 {
-  "server": "pisio.etfbl.net",
+  "server": "localhost",
   "chatServerPort": 8084,
   "tokenServerPort": 8083,
   "centralRegisterPort": 8081,
-  "fileServerPort": 1099
+  "fileServerPort": 1099,
+  "keystorePath": "src/keystore_client.jks",
+  "keystorePassword": "sigurnost",
+  "truststorePath": "src/truststore_client.jks",
+  "truststorePassword": "sigurnost",
+  "csvActivityRecords": "src/util/activities.csv",
+  "propertiesPath": "src/util/config.properties"
 }

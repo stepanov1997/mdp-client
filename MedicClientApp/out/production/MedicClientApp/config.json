@@ -1,5 +1,5 @@
 {
-  "server": "pisio.etfbl.net",
+  "server": "127.0.0.1",
   "multiCastAddress": "224.168.100.2",
   "chatServerPort": 8085,
   "multicastChatServerPort": 8086,

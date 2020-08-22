@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -33,11 +34,14 @@ import javax.ws.rs.core.Response;
 
 
 public class MapRecordedPosition implements Initializable {
+    private static final Logger LOGGER = Logger.getLogger(MapRecordedPosition.class.getName());
+
     private String LOCATION_API;
     {
         try {
             LOCATION_API = "http://"+ ConfigUtil.getServerHostname() +":"+ConfigUtil.getCentralRegisterPort()+"/api/locations/"+ CurrentUser.getToken();
         } catch (IOException ioException) {
+            LOGGER.log(Level.WARNING, "Config file - location api is missing", ioException);
             LOCATION_API = "http://127.0.0.1:8081/api/locations/"+ CurrentUser.getToken();
         }
     }

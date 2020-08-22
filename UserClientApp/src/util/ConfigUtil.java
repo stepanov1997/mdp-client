@@ -3,7 +3,6 @@ package util;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,5 +36,40 @@ public class ConfigUtil {
         String config = Files.readString(Path.of("src/config.json"));
         JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
         return jsonObject.get("fileServerPort").getAsInt();
+    }
+    public static String getKeystorePath() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("keystorePath").getAsString();
+    }
+
+    public static String getTruststorePath() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("truststorePath").getAsString();
+    }
+
+    public static String getKeystorePassword() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("keystorePassword").getAsString();
+    }
+
+    public static String getTruststorePassword() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("truststorePassword").getAsString();
+    }
+
+    public static String getActivityCsvPath() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("csvActivityRecords").getAsString();
+    }
+
+    public static String getPropertiesPath() throws IOException {
+        String config = Files.readString(Path.of("src/config.json"));
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(config);
+        return jsonObject.get("propertiesPath").getAsString();
     }
 }

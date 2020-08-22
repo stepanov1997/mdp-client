@@ -1,5 +1,6 @@
 package util;
 
+import controller.DocumentationController;
 import server.IFileServer;
 
 import java.io.File;
@@ -8,8 +9,12 @@ import java.io.RandomAccessFile;
 import java.rmi.Naming;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RmiClient {
+    private static final Logger LOGGER = Logger.getLogger(RmiClient.class.getName());
+
 
     public static void downloadFilesFromServer(String token, String fileName, long fileSize) {
         try {
@@ -20,6 +25,7 @@ public class RmiClient {
                 hostname = ConfigUtil.getServerHostname();
                 port = ConfigUtil.getFileServerPort();
             } catch (IOException ioException) {
+                LOGGER.log(Level.WARNING, "Cannot open file.", ioException);
                 hostname = "127.0.0.1";
                 port = 1099;
             }
@@ -45,11 +51,10 @@ public class RmiClient {
                     sended += toSend;
                 }
             }catch (IOException ex){
-                System.out.println("Failed file write: "+fileName);
+                LOGGER.log(Level.WARNING, "Cannot open file.", ex);
             }
         } catch (Exception e) {
-            System.err.println("FileServer exception:");
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Cannot open file.", e);
         }
     }
 }

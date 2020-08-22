@@ -43,7 +43,7 @@ public class UserModel {
     private final SimpleStringProperty token;
     private final SimpleObjectProperty<GridPane> options;
 
-    public UserModel(String token, Runnable refreshCallback) {
+    public UserModel(String token) {
         this.token = new SimpleStringProperty(token);
 
         GridPane gridPane = new GridPane();
@@ -77,7 +77,6 @@ public class UserModel {
                     Application_PortType apt = asl.getApplication();
                     if (apt.deactivateToken(token)) {
                         Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Successfully blocked.").showAndWait());
-                        Platform.runLater(refreshCallback);
                     } else {
                         Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Error, unsuccessfully blocked.").showAndWait());
                     }
@@ -139,7 +138,6 @@ public class UserModel {
                     return;
                 }
                 Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION, "Successfully marking person").showAndWait());
-                Platform.runLater(refreshCallback);
             }).start();
         });
         gridPane.getChildren().add(markButton);

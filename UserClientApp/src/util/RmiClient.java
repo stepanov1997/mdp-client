@@ -1,5 +1,6 @@
 package util;
 
+import controller.MainMenuController;
 import server.IFileServer;
 
 import java.io.File;
@@ -7,8 +8,11 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RmiClient {
+    private static final Logger LOGGER = Logger.getLogger(RmiClient.class.getName());
 
     public static void sendFileToServer(File file) {
         try {
@@ -42,8 +46,7 @@ public class RmiClient {
                 }
             }
         } catch (Exception e) {
-            System.err.println("FileServer exception:");
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Can't send file on server.", e);
         }
     }
 }

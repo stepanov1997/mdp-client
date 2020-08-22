@@ -18,9 +18,14 @@ import java.net.*;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+
 public class MainMenuController implements Initializable {
+
+    private static final Logger LOGGER = Logger.getLogger(DocumentationController.class.getName());
 
     private static String KEY_STORE_PATH = null;
 
@@ -134,7 +139,13 @@ public class MainMenuController implements Initializable {
         initTable();
         stopChatButton.setOnAction(event -> sendMessage(true));
         sendMessageButton.setOnAction(event -> sendMessage(false));
-        findButton.setOnAction(event -> new Thread(() -> importDataToTable(findTextField.getText())).start());
+        findButton.setOnAction(event -> new Thread(() -> {
+            try {
+                importDataToTable(findTextField.getText());
+            } catch (ServiceException | RemoteException e) {
+                Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Token server is offline.").showAndWait());
+            }
+        }).start());
         initChat();
     }
 
@@ -150,7 +161,7 @@ public class MainMenuController implements Initializable {
                 if (outForPatient != null && isOpened) {
                     context.text = context.text.replaceAll("\\r\\n", "");
                     outForPatient.println(context.text);
-                    Platform.runLater(() -> patientChat.setText(patientChat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
+                    Platform.runLater(() -> patientChat.setText("[me]: " + context.text + System.lineSeparator() + System.lineSeparator() + patientChat.getText()));
                     Platform.runLater(() -> message.setText(""));
                     try {
                         Thread.sleep(300);
@@ -173,7 +184,7 @@ public class MainMenuController implements Initializable {
                     } catch (IOException e) {
                         new Alert(Alert.AlertType.WARNING, "Can't send message.").showAndWait();
                     }
-                    Platform.runLater(() -> medicsChat.setText(medicsChat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
+                    Platform.runLater(() -> medicsChat.setText("[me]: " + context.text + System.lineSeparator() + System.lineSeparator() + medicsChat.getText()));
                     Platform.runLater(() -> message.setText(""));
                     try {
                         Thread.sleep(300);
@@ -188,8 +199,9 @@ public class MainMenuController implements Initializable {
         } else {
             try {
                 outForPatient.println("END");
-                Platform.runLater(() -> patientChat.setText(patientChat.getText() + "[me]: END" + System.lineSeparator() + System.lineSeparator()));
+                Platform.runLater(() -> patientChat.setText("[me]: END" + System.lineSeparator() + System.lineSeparator() + patientChat.getText()));
                 Platform.runLater(() -> message.setText(""));
+                socketForPatient.close();
                 isOpened = false;
             } catch (Exception e) {
                 new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
@@ -201,8 +213,17 @@ public class MainMenuController implements Initializable {
         tableView.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("token"));
         tableView.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("options"));
         new Thread(() -> {
+            boolean first = true;
             while (true) {
-                importDataToTable(findTextField.getText());
+                try {
+                    importDataToTable(findTextField.getText());
+                    first = true;
+                } catch (ServiceException | RemoteException e) {
+                    if (first) {
+                        LOGGER.log(Level.WARNING, "Token server is offline.", e);
+                        first = false;
+                    }
+                }
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
@@ -212,18 +233,14 @@ public class MainMenuController implements Initializable {
         }).start();
     }
 
-    private void importDataToTable(String filter) {
+    private void importDataToTable(String filter) throws ServiceException, RemoteException {
         String[] tokens = {};
-        try {
-            tokens = new TokenServerClient().getActiveTokens();
-        } catch (RemoteException | ServiceException exception) {
-            Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Error..Try again later..").showAndWait());
-        }
+        tokens = new TokenServerClient().getActiveTokens();
         String[] finalTokens = tokens;
         Platform.runLater(() ->
                 tableView.setItems(FXCollections.observableArrayList(Arrays.stream(finalTokens)
                         .filter(elem -> elem.toLowerCase().contains(filter.toLowerCase()))
-                        .map(elem -> new UserModel(elem, this::initTable))
+                        .map(UserModel::new)
                         .collect(Collectors.toList())))
         );
     }
@@ -252,7 +269,7 @@ public class MainMenuController implements Initializable {
                     lastMessage = "";
                     continue;
                 }
-                Platform.runLater(() -> medicsChat.setText(medicsChat.getText() + result + System.lineSeparator()));
+                Platform.runLater(() -> medicsChat.setText(result + System.lineSeparator() + medicsChat.getText()));
                 Platform.runLater(() -> medicsChat.setScrollTop(medicsChat.getHeight()));
             }
         }).start();
@@ -301,14 +318,13 @@ public class MainMenuController implements Initializable {
                         String result = String.valueOf(response).trim();
                         if (read == 0 || result.isBlank())
                             continue;
-                        if (result.startsWith("END")) {
-                            Platform.runLater(() -> patientChat.setText(""));
-                            continue;
-                        }
-                        Platform.runLater(() -> patientChat.setText(patientChat.getText() + result + System.lineSeparator()));
-                        Platform.runLater(() -> patientChat.setScrollTop(patientChat.getHeight()));
+//                        if (result.startsWith("END")) {
+//                            Platform.runLater(() -> patientChat.setText(""));
+//                            continue;
+//                        }
+                        Platform.runLater(() -> patientChat.setText(result + System.lineSeparator() + patientChat.getText()));
+                        Platform.runLater(() -> patientChat.setScrollTop(0));
                     } catch (IOException ex) {
-                        isOpened = false;
                         break;
                     }
                 }

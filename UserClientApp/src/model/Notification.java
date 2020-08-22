@@ -1,8 +1,9 @@
 package model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Notification {
+public class Notification implements Serializable {
     private String token;
     private String potential_contact_from;
     private String potential_contact_to;

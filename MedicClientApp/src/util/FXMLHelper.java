@@ -1,12 +1,16 @@
 package util;
 
+import controller.DocumentationController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FXMLHelper {
+    private static final Logger LOGGER = Logger.getLogger(FXMLHelper.class.getName());
 
     static FXMLHelper singleton=null;
     private FXMLHelper(){
@@ -24,7 +28,7 @@ public class FXMLHelper {
         try {
             root = loader.load();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Cannot load page..", "Cannot ");
         }
         Scene scene = new Scene(root);
         if(css!=null)

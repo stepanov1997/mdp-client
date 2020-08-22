@@ -23,8 +23,12 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LocalLoginController implements Initializable {
+    private static final Logger LOGGER = Logger.getLogger(LocalLoginController.class.getName());
+
     @FXML
     private Text welcome;
     @FXML
@@ -54,10 +58,12 @@ public class LocalLoginController implements Initializable {
             Application_PortType application = new Application_ServiceLocator().getApplication();
             boolean isOk = application.checkToken(CurrentUser.getToken());
             if(!isOk){
+                LOGGER.log(Level.WARNING, "Login: bad token.");
                 new Alert(Alert.AlertType.ERROR, "Unsuccessfully login. Bad token.").showAndWait();
                 return;
             }
         } catch (ServiceException | RemoteException e) {
+            LOGGER.log(Level.WARNING, "Token server is offline. Unsuccessfully login.", e);
             new Alert(Alert.AlertType.ERROR, "Token server is offline. Try again later.").showAndWait();
             return;
         }

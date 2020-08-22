@@ -1,5 +1,7 @@
 package controller;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import javafx.application.Platform;
@@ -35,6 +37,8 @@ import java.nio.Buffer;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static javafx.geometry.Pos.CENTER;
@@ -42,11 +46,53 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static view.datetime.DateTimePicker.DEFAULT_FORMAT;
 
 public class MainMenuController implements Initializable {
+    private static final Logger LOGGER = Logger.getLogger(MainMenuController.class.getName());
 
-    private static final String KEY_STORE_PATH = "src/keystore_client.jks";
-    private static final String KEY_STORE_PASSWORD = "sigurnost";
-    private static final String TRUST_STORE_PATH = "src/truststore_client.jks";
-    private static final String TRUST_STORE_PASSWORD = "sigurnost";
+
+    private static String KEY_STORE_PATH = null;
+
+    static {
+        try {
+            KEY_STORE_PATH = ConfigUtil.getKeystorePath();
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "Config file - Keystore path is missing.", ioException);
+            KEY_STORE_PATH = "src/keystore_client.jks";
+        }
+    }
+
+    private static String KEY_STORE_PASSWORD = null;
+
+    static {
+        try {
+            KEY_STORE_PASSWORD = ConfigUtil.getKeystorePassword();
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "Config file - Keystore password is missing.", ioException);
+            KEY_STORE_PASSWORD = "sigurnost";
+        }
+    }
+
+    private static String TRUST_STORE_PATH = null;
+
+    static {
+        try {
+            TRUST_STORE_PATH = ConfigUtil.getTruststorePath();
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "Config file - Truststore path is missing.", ioException);
+            TRUST_STORE_PATH = "src/truststore_client.jks";
+        }
+    }
+
+    private static String TRUST_STORE_PASSWORD = null;
+
+    static {
+        try {
+            TRUST_STORE_PASSWORD = ConfigUtil.getTruststorePassword();
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "Config file - Truststore password is missing.", ioException);
+            TRUST_STORE_PASSWORD = "sigurnost";
+        }
+    }
+
     public static String IP_ADDRESS;
     public static int TCP_PORT;
     private static String LOCATION_API;
@@ -63,24 +109,28 @@ public class MainMenuController implements Initializable {
         try {
             IP_ADDRESS = ConfigUtil.getServerHostname();
         } catch (IOException e) {
+            LOGGER.log(Level.FINE, "Config file - server address is missing.", e);
             IP_ADDRESS = "127.0.0.1";
         }
 
         try {
             TCP_PORT = ConfigUtil.getChatServerPort();
         } catch (IOException e) {
+            LOGGER.log(Level.FINE, "Config file - rest port is missing.", e);
             TCP_PORT = 8084;
         }
 
         try {
             LOCATION_API = "http://" + ConfigUtil.getServerHostname() + ":" + ConfigUtil.getCentralRegisterPort() + "/api/locations";
         } catch (IOException e) {
+            LOGGER.log(Level.FINE, "Config file - location api is missing.", e);
             LOCATION_API = "http://127.0.0.1:8081/api/locations";
         }
 
         try {
             NOTIFICATION_API = "http://" + ConfigUtil.getServerHostname() + ":" + ConfigUtil.getCentralRegisterPort() + "/api/notifications/" + CurrentUser.getToken();
         } catch (IOException e) {
+            LOGGER.log(Level.FINE, "Config file - notification api is missing.", e);
             NOTIFICATION_API = "http://127.0.0.1:8081/api/notifications/" + CurrentUser.getToken();
         }
     }
@@ -138,7 +188,6 @@ public class MainMenuController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initNotifications();
-        showNotification();
         initPreviousAndNext();
         initMenu();
         initMap();
@@ -166,55 +215,48 @@ public class MainMenuController implements Initializable {
     }
 
     private void showNotification() {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    if (currentNotification > notifications.size() - 1) {
-                        Platform.runLater(() -> {
-                            notificationText.setText("No notifications.");
-                            detailButton.setVisible(false);
-                            previousButton.setVisible(false);
-                            nextButton.setVisible(false);
-                        });
-                        try {
-                            Thread.sleep(3000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        continue;
-                    } else {
-                        Platform.runLater(() -> {
-                            detailButton.setVisible(true);
-                            previousButton.setVisible(true);
-                            nextButton.setVisible(true);
-                        });
-                    }
-                    Notification latest = notifications.get(currentNotification);
-                    Platform.runLater(() -> notificationText.setText((notifications.size() - currentNotification + 1) + ". Infection: " + latest.getInfection()));
-                    detailButton.setOnAction(event -> {
-                        if ("medic".equals(latest.getTypeOfNotification()))
-                            Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION,
-                                    "Medic marked you as " + latest.getInfection().toLowerCase() + " after chatting with you.").showAndWait());
-                        else {
-                            Platform.runLater(() -> {
-                                DetailNotificationController detailNotificationController = new DetailNotificationController(latest);
-                                Stage stage = new Stage();
-                                Scene scene = FXMLHelper.getInstance().loadNewScene("/view/map-recorded-position.fxml", "/view/css/main-menu.css", detailNotificationController, 900, 600);
-                                stage.setScene(scene);
-                                stage.initModality(Modality.APPLICATION_MODAL);
-                                stage.showAndWait();
-                            });
-                        }
-                    });
-                } catch (Exception e) {
-                }
+        try {
+            if (currentNotification > notifications.size() - 1) {
+                Platform.runLater(() -> {
+                    notificationText.setText("No notifications.");
+                    detailButton.setVisible(false);
+                    previousButton.setVisible(false);
+                    nextButton.setVisible(false);
+                });
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
+                    LOGGER.log(Level.WARNING, "Thread.sleep()", e);
                     e.printStackTrace();
                 }
+            } else {
+                Platform.runLater(() -> {
+                    detailButton.setVisible(true);
+                    previousButton.setVisible(true);
+                    nextButton.setVisible(true);
+                });
+
+                Notification latest = notifications.get(currentNotification);
+                Platform.runLater(() -> notificationText.setText((currentNotification + 1) + ". Infection: " + latest.getInfection()));
+                detailButton.setOnAction(event -> {
+                    if ("medic".equals(latest.getTypeOfNotification()))
+                        Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION,
+                                "Medic marked you as " + latest.getInfection().toLowerCase() + " after chatting with you.").showAndWait());
+                    else {
+                        Platform.runLater(() -> {
+                            DetailNotificationController detailNotificationController = new DetailNotificationController(latest);
+                            Stage stage = new Stage();
+                            Scene scene = FXMLHelper.getInstance().loadNewScene("/view/map-recorded-position.fxml", "/view/css/main-menu.css", detailNotificationController, 900, 600);
+                            stage.setScene(scene);
+                            stage.initModality(Modality.APPLICATION_MODAL);
+                            stage.showAndWait();
+                        });
+                    }
+                });
             }
-        }).start();
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Token server is offline. Unsuccessfully login.", e);
+        }
     }
 
     private void initNotifications() {
@@ -226,16 +268,34 @@ public class MainMenuController implements Initializable {
                     Invocation.Builder request = target.request(MediaType.APPLICATION_JSON);
                     Response response = request.get();
                     String entity = response.readEntity(String.class);
-                    JsonObject jsonObject = (JsonObject) JsonParser.parseString(entity);
+                    JsonElement jsonElement = JsonParser.parseString(entity);
+                    if (jsonElement.isJsonNull()) {
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException interruptedException) {
+                            LOGGER.log(Level.WARNING, "Thread.sleep().", interruptedException);
+                        }
+                    }
+                    JsonObject jsonObject = null;
+                    if (jsonElement.isJsonArray()) {
+                        if (jsonElement.getAsJsonArray().size() != 0) {
+                            jsonObject = jsonElement.getAsJsonArray().get(0).getAsJsonObject();
+                        } else {
+                            throw new Exception();
+                        }
+                    } else if (jsonElement.isJsonObject()) {
+                        jsonObject = jsonElement.getAsJsonObject();
+                    } else throw new Exception();
                     String typeOfNotification = jsonObject.get("typeOfNotification").getAsString();
+                    Notification notification = null;
                     if ("medic".equals(typeOfNotification)) {
-                        notifications.add(new Notification(
+                        notification = new Notification(
                                 jsonObject.get("token").getAsString(),
                                 jsonObject.get("infection").getAsString(),
                                 jsonObject.get("typeOfNotification").getAsString()
-                        ));
+                        );
                     } else {
-                        notifications.add(new Notification(
+                        notification = new Notification(
                                 jsonObject.get("token").getAsString(),
                                 jsonObject.get("potential_contact_from").getAsString(),
                                 jsonObject.get("potential_contact_to").getAsString(),
@@ -245,14 +305,18 @@ public class MainMenuController implements Initializable {
                                 jsonObject.get("distance").getAsInt(),
                                 jsonObject.get("infection").getAsString(),
                                 jsonObject.get("typeOfNotification").getAsString()
-                        ));
+                        );
                     }
+                    notifications.add(notification);
+                    currentNotification = notifications.size() - 1;
+                    showNotification();
+                    SerializationUtil.serializeNotification(notification);
                 } catch (Exception e) {
                 }
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException interruptedException) {
-                    interruptedException.printStackTrace();
+                    LOGGER.log(Level.WARNING, "Thread.sleep()", interruptedException);
                 }
             }
         }).start();
@@ -285,22 +349,23 @@ public class MainMenuController implements Initializable {
             }
             try {
                 new Thread(() -> {
-                    Platform.runLater(()-> sendDocumentsButton.setDisable(true));
+                    Platform.runLater(() -> sendDocumentsButton.setDisable(true));
                     while (!listFiles.isEmpty()) {
                         File file = listFiles.poll();
                         RmiClient.sendFileToServer(file);
-                        Platform.runLater(()-> new Alert(Alert.AlertType.INFORMATION, "Successfully sended "+file.getName()).showAndWait());
+                        Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION, "Successfully sended " + file.getName()).showAndWait());
                     }
-                    Platform.runLater(()-> {
+                    Platform.runLater(() -> {
                         new Alert(Alert.AlertType.INFORMATION, "Successfully sending files to file server.").showAndWait();
                         sendDocumentsButton.setDisable(false);
                     });
                 }).start();
             } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Cannot send files to file server.", e);
                 new Alert(Alert.AlertType.ERROR, "Unsuccessfully sending files to file server.").showAndWait();
                 return;
             }
-             });
+        });
     }
 
     private void initSendLocationButton() {
@@ -391,12 +456,12 @@ public class MainMenuController implements Initializable {
                         context.text = context.text.replaceAll("\\n", "").replaceAll("\\r", "");
                         out.println(context.text);
                         System.out.println("Data to write: \"" + context.text + "\"");
-                        Platform.runLater(() -> chat.setText(chat.getText() + "[me]: " + context.text + System.lineSeparator() + System.lineSeparator()));
+                        Platform.runLater(() -> chat.setText("[me]: " + context.text + System.lineSeparator() + System.lineSeparator() +chat.getText() ));
                         Platform.runLater(() -> message.setText(""));
                         try {
                             Thread.sleep(300);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            LOGGER.log(Level.WARNING, "Thread.sleep()", e);
                         }
                     } else {
                         new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
@@ -431,12 +496,15 @@ public class MainMenuController implements Initializable {
                     out.println("Token: " + CurrentUser.getToken());
                     break;
                 } catch (Exception exception) {
-                    if (first)
+                    if (first) {
+                        LOGGER.log(Level.WARNING, "Chat server is offline.", exception);
                         Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Chat server is offline.").showAndWait());
+                    }
                     first = false;
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
+                        LOGGER.log(Level.WARNING, "Thread.sleep()", e);
                         Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Chat server is offline.").showAndWait());
                     }
                 }
@@ -451,25 +519,25 @@ public class MainMenuController implements Initializable {
                         continue;
                     if (result.startsWith("END")) {
                         Platform.runLater(() -> {
-                            chat.setText(chat.getText() + "---MEDIC ENDED SESSION---" + System.lineSeparator());
+                            chat.setText("---MEDIC ENDED SESSION---" + System.lineSeparator() + chat.getText());
                             sendMessageButton.setVisible(false);
                             message.setVisible(false);
                             reconnectButton.setVisible(true);
                         });
                         isOpened = false;
-                        in.close();
-                        out.close();
                         break;
                     }
                     System.out.println("Read data: \"" + String.valueOf(response) + "\"");
-                    Platform.runLater(() -> chat.setText(chat.getText() + result + System.lineSeparator()));
+                    Platform.runLater(() -> chat.setText(result + System.lineSeparator() + chat.getText()));
                     Platform.runLater(() -> chat.setScrollTop(chat.getHeight()));
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
+                        LOGGER.log(Level.WARNING, "Thread.sleep()", e);
                         e.printStackTrace();
                     }
                 } catch (IOException ex) {
+                    LOGGER.log(Level.WARNING, "Closed session.", ex);
                     isOpened = false;
                     break;
                 }

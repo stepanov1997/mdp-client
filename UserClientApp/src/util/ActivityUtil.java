@@ -1,5 +1,6 @@
 package util;
 
+import controller.MainMenuController;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
@@ -11,9 +12,23 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ActivityUtil {
-    private static final String PATH_TO_CSV = "src/util/activities.csv";
+    private static final Logger LOGGER = Logger.getLogger(MainMenuController.class.getName());
+
+    private static String PATH_TO_CSV;
+
+    static {
+        try {
+            PATH_TO_CSV = ConfigUtil.getActivityCsvPath();
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Config file - cannot read CSV file");
+            PATH_TO_CSV = "csvActivityRecords";
+        }
+    }
+
     private static final String[] HEADERS = { "TOKEN", "LOGIN_TIME", "LOGOUT_TIME", "TOTAL_TIME" };
 
     public static LocalDateTime loginTime;
@@ -43,6 +58,7 @@ public class ActivityUtil {
             }
         }
         catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Cannot read activities.", e);
             e.printStackTrace();
         }
     }

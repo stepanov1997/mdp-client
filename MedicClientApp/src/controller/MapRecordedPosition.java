@@ -25,6 +25,8 @@ import java.util.stream.Stream;
 
 
 public class MapRecordedPosition implements Initializable {
+    private static final Logger LOGGER = Logger.getLogger(MapRecordedPosition.class.getName());
+
     private String LOCATION_API;
 
     {
@@ -64,7 +66,7 @@ public class MapRecordedPosition implements Initializable {
         Invocation.Builder invocationBuilder =  webTarget.request(MediaType.APPLICATION_JSON);
         Response response = invocationBuilder.get();
 
-        List<Location> locationList = new ArrayList<Location>();
+        List<Location> locationList = new ArrayList<>();
         if(Response.Status.Family.SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
             String jsonStr = response.readEntity(String.class);
             Gson gson = new Gson();
