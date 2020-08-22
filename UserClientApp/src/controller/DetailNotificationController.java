@@ -4,15 +4,19 @@ import com.google.gson.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import model.Location;
 import model.Notification;
+import util.ActivityUtil;
 import util.ConfigUtil;
 import util.CurrentUser;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +58,27 @@ public class DetailNotificationController implements Initializable {
     }
 
     private void initMarker() {
-        fields[notification.getLat()][notification.getaLong()].getStyleClass().add("pane-active");
+        Pane field = fields[notification.getLat()][notification.getaLong()];
+        field.getStyleClass().add("pane-active");
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
+        field.setUserData(
+                "Token" + notification.getToken() + System.lineSeparator() + System.lineSeparator() +
+                        "Potential contact from: " + notification.getPotential_contact_from() + System.lineSeparator() +
+                        "Potential contact to: " + notification.getPotential_contact_to() + System.lineSeparator() +
+                        "Infection: " + notification.getInfection() + System.lineSeparator() +
+                        "Distance: " + notification.getDistance() + System.lineSeparator() +
+                        "Interval: " + ActivityUtil.intervalGenerator(LocalDateTime.parse(notification.getPotential_contact_from(), dateTimeFormatter),
+                        LocalDateTime.parse(notification.getPotential_contact_to(), dateTimeFormatter)) + System.lineSeparator()
+        );
+        field.getStyleClass().add("pane-active");
+
+        field.setOnMouseClicked(mouseEvent -> {
+            Platform.runLater(() -> {
+                new Alert(Alert.AlertType.INFORMATION,
+                        (String) field.getUserData()
+                ).showAndWait();
+            });
+        });
     }
 
     private void initMap() {

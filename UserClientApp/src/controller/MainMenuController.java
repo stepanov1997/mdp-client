@@ -55,7 +55,7 @@ public class MainMenuController implements Initializable {
         try {
             KEY_STORE_PATH = ConfigUtil.getKeystorePath();
         } catch (IOException ioException) {
-            LOGGER.log(Level.FINE, "Config file - Keystore path is missing.", ioException);
+            LOGGER.log(Level.FINE, "Config file - Keystore path is missing.", ioException.getMessage());
             KEY_STORE_PATH = "src/keystore_client.jks";
         }
     }
@@ -66,7 +66,7 @@ public class MainMenuController implements Initializable {
         try {
             KEY_STORE_PASSWORD = ConfigUtil.getKeystorePassword();
         } catch (IOException ioException) {
-            LOGGER.log(Level.FINE, "Config file - Keystore password is missing.", ioException);
+            LOGGER.log(Level.FINE, "Config file - Keystore password is missing.", ioException.getMessage());
             KEY_STORE_PASSWORD = "sigurnost";
         }
     }
@@ -77,7 +77,7 @@ public class MainMenuController implements Initializable {
         try {
             TRUST_STORE_PATH = ConfigUtil.getTruststorePath();
         } catch (IOException ioException) {
-            LOGGER.log(Level.FINE, "Config file - Truststore path is missing.", ioException);
+            LOGGER.log(Level.FINE, "Config file - Truststore path is missing.", ioException.getMessage());
             TRUST_STORE_PATH = "src/truststore_client.jks";
         }
     }
@@ -88,7 +88,7 @@ public class MainMenuController implements Initializable {
         try {
             TRUST_STORE_PASSWORD = ConfigUtil.getTruststorePassword();
         } catch (IOException ioException) {
-            LOGGER.log(Level.FINE, "Config file - Truststore password is missing.", ioException);
+            LOGGER.log(Level.FINE, "Config file - Truststore password is missing.", ioException.getMessage());
             TRUST_STORE_PASSWORD = "sigurnost";
         }
     }
@@ -109,28 +109,28 @@ public class MainMenuController implements Initializable {
         try {
             IP_ADDRESS = ConfigUtil.getServerHostname();
         } catch (IOException e) {
-            LOGGER.log(Level.FINE, "Config file - server address is missing.", e);
+            LOGGER.log(Level.FINE, "Config file - server address is missing.", e.getMessage());
             IP_ADDRESS = "127.0.0.1";
         }
 
         try {
             TCP_PORT = ConfigUtil.getChatServerPort();
         } catch (IOException e) {
-            LOGGER.log(Level.FINE, "Config file - rest port is missing.", e);
+            LOGGER.log(Level.FINE, "Config file - rest port is missing.", e.getMessage());
             TCP_PORT = 8084;
         }
 
         try {
             LOCATION_API = "http://" + ConfigUtil.getServerHostname() + ":" + ConfigUtil.getCentralRegisterPort() + "/api/locations";
         } catch (IOException e) {
-            LOGGER.log(Level.FINE, "Config file - location api is missing.", e);
+            LOGGER.log(Level.FINE, "Config file - location api is missing.", e.getMessage());
             LOCATION_API = "http://127.0.0.1:8081/api/locations";
         }
 
         try {
             NOTIFICATION_API = "http://" + ConfigUtil.getServerHostname() + ":" + ConfigUtil.getCentralRegisterPort() + "/api/notifications/" + CurrentUser.getToken();
         } catch (IOException e) {
-            LOGGER.log(Level.FINE, "Config file - notification api is missing.", e);
+            LOGGER.log(Level.FINE, "Config file - notification api is missing.", e.getMessage());
             NOTIFICATION_API = "http://127.0.0.1:8081/api/notifications/" + CurrentUser.getToken();
         }
     }
@@ -187,6 +187,7 @@ public class MainMenuController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        showNotification();
         initNotifications();
         initPreviousAndNext();
         initMenu();
@@ -226,7 +227,7 @@ public class MainMenuController implements Initializable {
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
-                    LOGGER.log(Level.WARNING, "Thread.sleep()", e);
+                    LOGGER.log(Level.WARNING, "Thread.sleep()", e.getMessage());
                     e.printStackTrace();
                 }
             } else {
@@ -255,7 +256,7 @@ public class MainMenuController implements Initializable {
                 });
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Token server is offline. Unsuccessfully login.", e);
+            LOGGER.log(Level.WARNING, "Token server is offline. Unsuccessfully login.", e.getMessage());
         }
     }
 
@@ -273,7 +274,7 @@ public class MainMenuController implements Initializable {
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException interruptedException) {
-                            LOGGER.log(Level.WARNING, "Thread.sleep().", interruptedException);
+                            LOGGER.log(Level.WARNING, "Thread.sleep().", interruptedException.getMessage());
                         }
                     }
                     JsonObject jsonObject = null;
@@ -316,7 +317,7 @@ public class MainMenuController implements Initializable {
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException interruptedException) {
-                    LOGGER.log(Level.WARNING, "Thread.sleep()", interruptedException);
+                    LOGGER.log(Level.WARNING, "Thread.sleep()", interruptedException.getMessage());
                 }
             }
         }).start();
@@ -361,7 +362,7 @@ public class MainMenuController implements Initializable {
                     });
                 }).start();
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Cannot send files to file server.", e);
+                LOGGER.log(Level.WARNING, "Cannot send files to file server.", e.getMessage());
                 new Alert(Alert.AlertType.ERROR, "Unsuccessfully sending files to file server.").showAndWait();
                 return;
             }
@@ -400,6 +401,7 @@ public class MainMenuController implements Initializable {
             jsonObject.addProperty("long", _long);
             jsonObject.addProperty("from", DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss").format(fromDateTimeValue));
             jsonObject.addProperty("to", DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss").format(toDateTimeValue));
+            jsonObject.addProperty("dateTime", DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss").format(LocalDateTime.now()));
 
             Response response = invocationBuilder.post(Entity.entity(jsonObject.toString(), MediaType.APPLICATION_JSON));
             if (response.getStatus() != 200) {
@@ -451,17 +453,22 @@ public class MainMenuController implements Initializable {
                 var context = new Object() {
                     String text = message.getText();
                 };
+                if("".equals(context.text))
+                {
+                    Platform.runLater(() -> sendMessageButton.setDisable(false));
+                    return;
+                }
                 if (isOpened) {
                     if (out != null) {
                         context.text = context.text.replaceAll("\\n", "").replaceAll("\\r", "");
                         out.println(context.text);
                         System.out.println("Data to write: \"" + context.text + "\"");
-                        Platform.runLater(() -> chat.setText("[me]: " + context.text + System.lineSeparator() + System.lineSeparator() +chat.getText() ));
+                        Platform.runLater(() -> chat.setText("[me]: " + context.text + System.lineSeparator() + System.lineSeparator() + chat.getText()));
                         Platform.runLater(() -> message.setText(""));
                         try {
                             Thread.sleep(300);
                         } catch (InterruptedException e) {
-                            LOGGER.log(Level.WARNING, "Thread.sleep()", e);
+                            LOGGER.log(Level.WARNING, "Thread.sleep()", e.getMessage());
                         }
                     } else {
                         new Alert(Alert.AlertType.WARNING, "Connection is not estabilished yet.").showAndWait();
@@ -492,19 +499,32 @@ public class MainMenuController implements Initializable {
                     in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                     out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())), true);
 
+                    sendMessageButton.getScene().getWindow().setOnCloseRequest(e -> {
+                        Thread thread = new Thread(() -> out.println("END"));
+                        thread.start();
+                        try {
+                            thread.join();
+                        } catch (InterruptedException interruptedException) {
+                            interruptedException.printStackTrace();
+                        }
+                        System.exit(0);
+                    });
+                    if (first)
+                        chat.setText("---CONNECTED TO CHAT---" + System.lineSeparator() + chat.getText());
+
                     isOpened = true;
                     out.println("Token: " + CurrentUser.getToken());
                     break;
                 } catch (Exception exception) {
                     if (first) {
-                        LOGGER.log(Level.WARNING, "Chat server is offline.", exception);
+                        LOGGER.log(Level.WARNING, "Chat server is offline.", exception.getMessage());
                         Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Chat server is offline.").showAndWait());
                     }
                     first = false;
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                        LOGGER.log(Level.WARNING, "Thread.sleep()", e);
+                        LOGGER.log(Level.WARNING, "Thread.sleep()", e.getMessage());
                         Platform.runLater(() -> new Alert(Alert.AlertType.WARNING, "Chat server is offline.").showAndWait());
                     }
                 }
@@ -525,7 +545,7 @@ public class MainMenuController implements Initializable {
                             reconnectButton.setVisible(true);
                         });
                         isOpened = false;
-                        break;
+                        return;
                     }
                     System.out.println("Read data: \"" + String.valueOf(response) + "\"");
                     Platform.runLater(() -> chat.setText(result + System.lineSeparator() + chat.getText()));
@@ -533,11 +553,11 @@ public class MainMenuController implements Initializable {
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
-                        LOGGER.log(Level.WARNING, "Thread.sleep()", e);
+                        LOGGER.log(Level.WARNING, "Thread.sleep()", e.getMessage());
                         e.printStackTrace();
                     }
                 } catch (IOException ex) {
-                    LOGGER.log(Level.WARNING, "Closed session.", ex);
+                    LOGGER.log(Level.WARNING, "Closed session.", ex.getMessage());
                     isOpened = false;
                     break;
                 }

@@ -30,7 +30,7 @@ public class MainFX extends Application {
         Scene scene = FXMLHelper.getInstance().loadNewScene("/view/main-menu.fxml", "/view/css/main-menu.css", new MainMenuController());
         primaryStage.setScene(scene);
         primaryStage.getIcons().add(new Image("/view/icons/app-icon.png"));
-        primaryStage.setTitle("Hospital Application");
+        primaryStage.setTitle("Medic - Hospital Application");
         primaryStage.setResizable(true);
         primaryStage.setOnCloseRequest(event-> {
             System.exit(0);

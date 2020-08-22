@@ -106,8 +106,6 @@ public class MainMenuController implements Initializable {
 
     String msg = null;
     @FXML
-    private TextArea chat;
-    @FXML
     private TextArea message;
     @FXML
     private Button sendMessageButton;
@@ -160,6 +158,10 @@ public class MainMenuController implements Initializable {
             if (tabPatient.isSelected()) {
                 if (outForPatient != null && isOpened) {
                     context.text = context.text.replaceAll("\\r\\n", "");
+                    if ("".equals(context.text)) {
+                        Platform.runLater(() -> sendMessageButton.setDisable(false));
+                        return;
+                    }
                     outForPatient.println(context.text);
                     Platform.runLater(() -> patientChat.setText("[me]: " + context.text + System.lineSeparator() + System.lineSeparator() + patientChat.getText()));
                     Platform.runLater(() -> message.setText(""));
@@ -174,6 +176,10 @@ public class MainMenuController implements Initializable {
             } else if (tabMedics.isSelected()) {
                 if (socketForMedics != null) {
                     context.text = context.text.replaceAll("\\r\\n", "");
+                    if ("".equals(context.text)) {
+                        Platform.runLater(() -> sendMessageButton.setDisable(false));
+                        return;
+                    }
                     byte[] msg = message.getText().getBytes();
                     DatagramPacket packet = null;
                     try {
@@ -184,7 +190,7 @@ public class MainMenuController implements Initializable {
                     } catch (IOException e) {
                         new Alert(Alert.AlertType.WARNING, "Can't send message.").showAndWait();
                     }
-                    Platform.runLater(() -> medicsChat.setText("[me]: " + context.text + System.lineSeparator() + System.lineSeparator() + medicsChat.getText()));
+                    Platform.runLater(() -> medicsChat.setText("[me]: " + message.getText() + System.lineSeparator() + medicsChat.getText()));
                     Platform.runLater(() -> message.setText(""));
                     try {
                         Thread.sleep(300);
@@ -199,7 +205,7 @@ public class MainMenuController implements Initializable {
         } else {
             try {
                 outForPatient.println("END");
-                Platform.runLater(() -> patientChat.setText("[me]: END" + System.lineSeparator() + System.lineSeparator() + patientChat.getText()));
+                Platform.runLater(() -> patientChat.setText("---YOU ENDED SESSION---" + System.lineSeparator() + patientChat.getText()));
                 Platform.runLater(() -> message.setText(""));
                 socketForPatient.close();
                 isOpened = false;
@@ -251,6 +257,7 @@ public class MainMenuController implements Initializable {
                 InetAddress addr = InetAddress.getByName(MULTICAST_ADDRESS);
                 socketForMedics = new MulticastSocket(UDP_PORT);
                 socketForMedics.joinGroup(addr);
+                Platform.runLater(() -> medicsChat.setText("---CONNECTED TO GROUP CHAT---" + System.lineSeparator() + patientChat.getText()));
             } catch (IOException ioException) {
                 new Alert(Alert.AlertType.WARNING, "Chat with group doesn't work.").showAndWait();
             }
@@ -296,6 +303,20 @@ public class MainMenuController implements Initializable {
 
                         inForPatient = new BufferedReader(new InputStreamReader(socketForPatient.getInputStream()));
                         outForPatient = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socketForPatient.getOutputStream())), true);
+
+                        sendMessageButton.getScene().getWindow().setOnCloseRequest(e -> {
+                            Thread thread = new Thread(() -> outForPatient.println("END"));
+                            thread.start();
+                            try {
+                                thread.join();
+                            } catch (InterruptedException interruptedException) {
+                                interruptedException.printStackTrace();
+                            }
+                            System.exit(0);
+                        });
+
+                        Platform.runLater(() -> patientChat.setText("---CONNECTED TO CHAT---" + System.lineSeparator() + patientChat.getText()));
+
                         isOpened = true;
                         Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION, "Chat server is online.").showAndWait());
                         break;
@@ -318,10 +339,9 @@ public class MainMenuController implements Initializable {
                         String result = String.valueOf(response).trim();
                         if (read == 0 || result.isBlank())
                             continue;
-//                        if (result.startsWith("END")) {
-//                            Platform.runLater(() -> patientChat.setText(""));
-//                            continue;
-//                        }
+                        if (result.startsWith("END")) {
+                            break;
+                        }
                         Platform.runLater(() -> patientChat.setText(result + System.lineSeparator() + patientChat.getText()));
                         Platform.runLater(() -> patientChat.setScrollTop(0));
                     } catch (IOException ex) {

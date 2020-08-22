@@ -38,7 +38,7 @@ public class MainFX extends Application {
             Scene scene = FXMLHelper.getInstance().loadNewScene("/view/sign-in.fxml", "/view/css/sign-in.css", new SignInController(), 400, 300);
             primaryStage.setScene(scene);
             primaryStage.getIcons().add(new Image("/view/icons/app-icon.png"));
-            primaryStage.setTitle("Hospital Application");
+            primaryStage.setTitle("Patient - Hospital Application");
             primaryStage.setResizable(false);
             StageUtil.centerStage(primaryStage);
             primaryStage.show();
@@ -47,7 +47,7 @@ public class MainFX extends Application {
         Scene scene = FXMLHelper.getInstance().loadNewScene("/view/local-login.fxml", "/view/css/sign-in.css", new LocalLoginController(), 300, 200);
         primaryStage.setScene(scene);
         primaryStage.getIcons().add(new Image("/view/icons/app-icon.png"));
-        primaryStage.setTitle("Hospital Application");
+        primaryStage.setTitle("Patient - Hospital Application");
         primaryStage.setResizable(false);
         primaryStage.show();
         StageUtil.centerStage(primaryStage);

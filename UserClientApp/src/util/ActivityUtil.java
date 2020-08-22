@@ -81,7 +81,7 @@ public class ActivityUtil {
             return result;
     }
 
-    private static String intervalGenerator(LocalDateTime before, LocalDateTime after){
+    public static String intervalGenerator(LocalDateTime before, LocalDateTime after){
         LocalDateTime tempDateTime = LocalDateTime.from(before);
 
         long years = tempDateTime.until(after, ChronoUnit.YEARS );

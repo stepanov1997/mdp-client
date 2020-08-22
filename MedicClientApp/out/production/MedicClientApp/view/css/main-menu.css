@@ -19,3 +19,29 @@
     -fx-alignment: center;
     -fx-text-alignment: center;
 }
+
+
+.button,
+.combo-box {
+    -fx-background-color: #ffdfdf;
+    -fx-border-color: #000000;
+    -fx-border-radius: 1px;
+}
+
+.text-field {
+    -fx-border-color: #ffdfdf;
+}
+
+.button:hover {
+    -fx-background-color: #e7cdcd;
+}
+
+.separator *.line {
+    -fx-border-style: solid;
+    -fx-border-width: 1px;
+    -fx-border-color: #e7cdcd;
+}
+
+.root {
+    -fx-background-color: #fdf0f0;
+}
